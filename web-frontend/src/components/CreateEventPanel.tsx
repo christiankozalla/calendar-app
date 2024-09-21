@@ -99,7 +99,7 @@ export const CreateEventPanel = ({
 						<Text size="2" className="mb-1">
 							Participants
 						</Text>
-						<MultiSelect<PersonsResponse[]>
+						<MultiSelect
 							formfieldName="persons"
 							placeholder="Select participating persons"
 							options={persons}

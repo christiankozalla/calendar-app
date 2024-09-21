@@ -25,10 +25,6 @@ const submit: FormEventHandler<HTMLFormElement> = async (event) => {
 	}
 	formData.set("owner", pb.authStore.model?.id);
 
-	formData.forEach((v, k) => {
-		console.log(k, v);
-	});
-
 	await pb.collection("events").create(formData);
 	(event.target as HTMLFormElement).reset();
 };

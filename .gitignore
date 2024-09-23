@@ -9,3 +9,5 @@ its
 dev_files
 
 e2e/_*
+
+.env*

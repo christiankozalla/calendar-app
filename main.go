@@ -4,8 +4,7 @@ import (
 	"log"
 	"os"
 
-	// "github.com/christiankozalla/calendar-app/eventhandlers"
-
+	"github.com/christiankozalla/calendar-app/dotenv"
 	_ "github.com/christiankozalla/calendar-app/migrations"
 
 	"github.com/pocketbase/pocketbase"
@@ -15,6 +14,11 @@ import (
 )
 
 func main() {
+	err := dotenv.Load()
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	app := pocketbase.New()
 
 	var indexFallback bool

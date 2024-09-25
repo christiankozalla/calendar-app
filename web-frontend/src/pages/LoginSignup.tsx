@@ -9,19 +9,28 @@ import {
 	Flex,
 	Text,
 	Link as VisualLink,
+	Callout,
 } from "@radix-ui/themes";
 import { pb } from "@/api/pocketbase";
-import { ClientResponseError } from "pocketbase";
-import { useNavigate } from "react-router-dom";
+import { ClientResponseError, type RecordOptions } from "pocketbase";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useRecoilValue } from "recoil";
 import { authenticatedState } from "@/store";
+import { type JwtBaseClaims, parse } from "@/utils/jwt";
 
 type SignupData = {
 	email: string;
 	name: string;
 	password: string;
 	passwordConfirm: string;
+	token?: string; // Invite Token
 };
+
+type InviteTokenJwtClaims = {
+	inviteeEmail: string;
+	inviterEmail: string;
+	inviterName: string;
+} & JwtBaseClaims;
 
 const loginUser = async ({
 	email,
@@ -33,19 +42,12 @@ const loginUser = async ({
 		.authWithPassword(email, password);
 };
 
-const signupUser = async ({
-	email,
-	password,
-	passwordConfirm,
-	name,
-}: SignupData) => {
-	console.log("Signing up user:", email);
-	const userCreateRes = await pb
-		.collection("users")
-		.create({ email, password, passwordConfirm, name });
+const signupUser = async (data: SignupData, options?: RecordOptions) => {
+	console.log("Signing up user:", data.email);
+	const userCreateRes = await pb.collection("users").create(data, options);
 	// const verificationEmailSent = await pb.collection("users").requestVerification(email);
 
-	await loginUser({ email, password });
+	await loginUser({ email: data.email, password: data.password });
 };
 // Needs to be exported as named export Component, so that it may be lazily loaded as Routes object in src/router/index.ts
 export const Component = () => {
@@ -58,11 +60,30 @@ export const Component = () => {
 		}
 	}, [isAuthenticated]);
 
+	const [searchParams] = useSearchParams();
+	const inviteToken = searchParams.get("token");
+	const [inviterInfo, setInviterInfo] = useState<Pick<
+		InviteTokenJwtClaims,
+		"inviterEmail" | "inviterName"
+	> | null>(null);
+
 	const [activeTab, setActiveTab] = useState("login");
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
 	const [passwordConfirm, setPasswordConfirm] = useState("");
 	const [name, setName] = useState("");
+
+	useEffect(() => {
+		if (inviteToken) {
+			const parsed = parse<InviteTokenJwtClaims>(inviteToken);
+			setActiveTab("signup");
+			setEmail(parsed.body.inviteeEmail);
+			setInviterInfo({
+				inviterEmail: parsed.body.inviterEmail,
+				inviterName: parsed.body.inviterName,
+			});
+		}
+	}, [searchParams]);
 
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
@@ -70,7 +91,10 @@ export const Component = () => {
 			if (activeTab === "login") {
 				await loginUser({ email, password });
 			} else {
-				await signupUser({ email, password, passwordConfirm, name });
+				const options = inviteToken
+					? { query: { token: inviteToken } }
+					: undefined;
+				await signupUser({ email, password, passwordConfirm, name }, options);
 			}
 
 			navigate("/");
@@ -112,6 +136,17 @@ export const Component = () => {
 									Sign Up
 								</Tabs.Trigger>
 							</Tabs.List>
+							{/* Invitation */}
+							{inviterInfo && (
+								<Callout.Root mb="2">
+									<Callout.Text>
+										{inviterInfo.inviterName || "Your friend"} (
+										{inviterInfo.inviterEmail}) invited you to CalenShare!
+										<br />
+										Signup so you can enjoy sharing a calendar :D
+									</Callout.Text>
+								</Callout.Root>
+							)}
 							<form onSubmit={handleSubmit}>
 								<Flex direction="column" gap="3">
 									{activeTab === "signup" && (
@@ -126,6 +161,7 @@ export const Component = () => {
 										type="email"
 										placeholder="Email"
 										value={email}
+										disabled={Boolean(inviteToken)}
 										onChange={(e) => setEmail(e.target.value)}
 										required
 									/>
@@ -156,12 +192,16 @@ export const Component = () => {
 							{activeTab === "login" ? (
 								<>
 									Don't have an account?{" "}
-									<VisualLink onClick={toggleTab}>Sign up!</VisualLink>
+									<VisualLink onClick={toggleTab} className="cursor-pointer">
+										Sign up!
+									</VisualLink>
 								</>
 							) : (
 								<>
 									Already have an account?{" "}
-									<VisualLink onClick={toggleTab}>Log in!</VisualLink>
+									<VisualLink onClick={toggleTab} className="cursor-pointer">
+										Log in!
+									</VisualLink>
 								</>
 							)}
 						</Text>

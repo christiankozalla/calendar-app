@@ -54,14 +54,15 @@ export function MultiSelect<T extends BaseModel>({
 					</Flex>
 				</Popover.Content>
 			</Popover.Root>
-	selectedOptions.map((option) => (
-		<input
-			key={option.id}
-			type="hidden"
-			name={formfieldName}
-			value={option.id}
-		/>
-	));
-	</>
-	)
+			{/* Hidden inputs for form data */}
+			{selectedOptions.map((option) => (
+				<input
+					key={option.id}
+					type="hidden"
+					name={formfieldName}
+					value={option.id}
+				/>
+			))}
+		</>
+	);
 }

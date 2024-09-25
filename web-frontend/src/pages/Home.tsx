@@ -6,6 +6,7 @@ import {
 	TextField,
 	Button,
 	Heading,
+	Select,
 } from "@radix-ui/themes";
 import { pb } from "@/api/pocketbase";
 import {
@@ -15,28 +16,10 @@ import {
 } from "@/api/pocketbase-types";
 import { Link } from "react-router-dom";
 import { formatEventDate } from "@/utils/dateFormatting";
+import { CreateInvitationPanel } from "@/components/CreateInvitationPanel";
 // List next events
 
 // show calendar for manipulation
-
-// Invitation flow
-// 1. Inviter sends email address to collection("invitations")
-// 2. collection("invitations") has an onBefore or an onAfter hook that:
-// 2.1 generates a JWT token
-// 2.2. sends out an email with a signup link /login-signup?email=<URLENCODED_EMAIL>&token=<TOKEN>
-// 3. The login page hides the login feature
-// 3.1 The login page prefills the email address in a disabled field
-// 3.2 Explains who was the inviter
-// 3.3. When the invitee signs up with the token, an onAfter hook is called in Users-Create
-// 4. OnAfter in Users-Create does
-// 4.1 verify and decode the token
-// 4.2 check the invitation entity for whether it is a legitimate request (do token and emails match?)
-// 4.3 add invitee email address to Calendar to which they were invited
-// 4.4 set their own User status to verified (because they already received the invitation as email)
-const inviteNewUser: FormEventHandler<HTMLFormElement> = (e) => {
-	e.preventDefault();
-	const fd = new FormData(e.target as HTMLFormElement);
-};
 
 const CalendarItem = ({
 	calendar,
@@ -126,21 +109,11 @@ export const Component = () => {
 			<Heading size="6" className="mb-6">
 				Your Calendars
 			</Heading>
+
 			<CalendarList calendars={calendars} />
 
-			<Box mt="6">
-				<Text>Invite people to share your calendar with (exclusively)</Text>
-				<form onSubmit={inviteNewUser}>
-					Email:
-					<TextField.Root
-						type="email"
-						name="email"
-						placeholder="Who do you want to invite to your calendar?"
-						required
-					/>
-					<Button type="submit">Invite</Button>
-				</form>
-			</Box>
+			<CreateInvitationPanel calendars={calendars} />
+
 			<Box>
 				<Text>Add people in your family</Text>
 			</Box>

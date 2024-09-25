@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/christiankozalla/calendar-app/dotenv"
+	"github.com/christiankozalla/calendar-app/eventhandlers"
 	_ "github.com/christiankozalla/calendar-app/migrations"
 
 	"github.com/pocketbase/pocketbase"
@@ -33,6 +34,9 @@ func main() {
 		// enable auto creation of migration files when making collection changes in the Admin UI
 		Automigrate: os.Getenv("AUTOMIGRATE") == "true",
 	})
+
+	app.OnRecordBeforeCreateRequest("invitations").Add(eventhandlers.OnBeforeCreateInvitation(app))
+	app.OnRecordAfterCreateRequest("users").Add(eventhandlers.OnAfterUsersCreateHandleInvitation(app))
 
 	// serves static files from the provided public dir (if exists)
 	app.OnBeforeServe().Add(func(e *core.ServeEvent) error {

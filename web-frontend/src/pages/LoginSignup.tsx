@@ -15,7 +15,7 @@ import { pb } from "@/api/pocketbase";
 import { ClientResponseError, type RecordOptions } from "pocketbase";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useRecoilValue } from "recoil";
-import { authenticatedState } from "@/store";
+import { authenticatedState } from "@/store/Authentication";
 import { type JwtBaseClaims, parse } from "@/utils/jwt";
 
 type SignupData = {

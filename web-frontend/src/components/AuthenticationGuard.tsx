@@ -1,7 +1,7 @@
 import { useEffect, type PropsWithChildren } from "react";
 import { Navigate } from "react-router-dom";
 import { useRecoilState } from "recoil";
-import { authenticatedState } from "@/store";
+import { authenticatedState } from "@/store/Authentication";
 import { pb } from "@/api/pocketbase";
 
 type Props = {

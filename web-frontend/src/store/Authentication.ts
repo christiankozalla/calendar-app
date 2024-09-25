@@ -25,8 +25,3 @@ export const authenticatedState = atom({
 	default: false,
 	effects: [getAuthStateFromPocketBaseSDK],
 });
-
-export const CurrentCalendarId = atom<string | null>({
-	key: "CurrentCalendarId",
-	default: localStorage.getItem("current-calendar-id"),
-});

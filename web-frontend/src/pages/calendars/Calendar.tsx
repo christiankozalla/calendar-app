@@ -1,4 +1,4 @@
-import { Fragment, useState } from "react";
+import { Fragment, useCallback, useRef, useState } from "react";
 import { pb } from "@/api/pocketbase";
 import type {
 	EventsResponse,
@@ -17,10 +17,11 @@ import {
 	IconButton,
 	Select,
 	Spinner,
+	Button,
 } from "@radix-ui/themes";
-import { SlidingDrawer } from "@/components/SlidingDrawer";
 import { EventList } from "@/components/EventList";
 import { CreateEventPanel } from "@/components/CreateEventPanel";
+import { useSlidingDrawer } from "@/hooks/useSlidingDrawer";
 
 const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 const MONTHS = [
@@ -51,6 +52,8 @@ export const Component = () => {
 	const [persons, setPersons] = useState<PersonsResponse[]>([]);
 	const [loading, setLoading] = useState(true);
 
+	const { push, update } = useSlidingDrawer();
+
 	useEffect(() => {
 		if (calendarId) {
 			setLoading(true);
@@ -72,59 +75,74 @@ export const Component = () => {
 
 			Promise.allSettled([calendarsRequest, eventsRequest, personsRequest])
 				.then(([c, e, p]) => {
-					if (c.status === "fulfilled") {
-						setCalendar(c.value);
-					}
 					if (e.status === "fulfilled") {
 						setEvents(e.value.items);
 					}
 					if (p.status === "fulfilled") {
 						setPersons(p.value.items);
 					}
+					if (c.status === "fulfilled") {
+						setCalendar(c.value);
+					}
 				})
 				.catch((err) => {
 					console.error(err);
 				})
 				.finally(() => {
-					setLoading(false);
+					setTimeout(() => {
+						setLoading(false);
+					}, 200); // dirty hack because: even though a calendarFromBackend was set before setLoading to false, the part "No calendar for this ID {calendarId}" is still shown (and shouldn't be!)
 				});
-
-			pb.collection("events").subscribe(
-				"*",
-				(collection) => {
-					switch (collection.action) {
-						case "create":
-							setEvents((events) => [...(events ?? []), collection.record]);
-							break;
-
-						case "update":
-							setEvents((events) => [
-								...(events ?? []).filter((e) => e.id !== collection.record.id),
-								collection.record,
-							]);
-							break;
-
-						case "delete":
-							setEvents((events) => [
-								...(events ?? []).filter((e) => e.id !== collection.record.id),
-							]);
-							break;
-
-						default:
-							console.error("Unhandled action:", collection.action);
-					}
-				},
-				{
-					// TODO: enhance filter with viewing month (from useLilius)
-					filter: pb.filter("calendar = {:calendarId}", { calendarId }),
-				},
-			);
-
-			return () => {
-				pb.collection("events").unsubscribe("*");
-			};
 		}
 	}, [calendarId]);
+
+	useEffect(() => {
+		pb.collection("events").subscribe(
+			"*",
+			(collection) => {
+				switch (collection.action) {
+					case "create":
+						setEvents((events) => [...(events ?? []), collection.record]);
+						break;
+
+					case "update":
+						setEvents((events) => [
+							...(events ?? []).filter((e) => e.id !== collection.record.id),
+							collection.record,
+						]);
+						break;
+
+					case "delete":
+						setEvents((events) => [
+							...(events ?? []).filter((e) => e.id !== collection.record.id),
+						]);
+						break;
+
+					default:
+						console.error("Unhandled action:", collection.action);
+				}
+			},
+			{
+				// TODO: enhance filter with viewing month (from useLilius)
+				filter: pb.filter("calendar = {:calendarId}", { calendarId }),
+			},
+		);
+
+		return () => {
+			pb.collection("events").unsubscribe("*");
+		};
+	}, [calendarId]);
+
+	const openCreateNewEvent = useCallback(
+		(datetime: Date) => {
+			push({
+				state: { isOpen: true },
+				props: { datetime: datetime.toISOString(), persons },
+				component: CreateEventPanel,
+			});
+		},
+		[persons],
+	);
 
 	const {
 		calendar,
@@ -146,19 +164,82 @@ export const Component = () => {
 		{ length: 10 },
 		(_, i) => viewing.getFullYear() - 5 + i,
 	);
-
-	const [isDrawerOpen, setIsDrawerOpen] = useState<boolean>(false);
-	const [drawerContent, setDrawerContent] = useState<EventsResponse[]>([]);
+	// Needs to be refactored to be more readable and concise
+	const eventListId = useRef<string>();
+	const newEventSliderId = useRef<string>();
 	useEffect(() => {
 		if (selected.length > 0) {
 			const eventsForSelectedDay = findEventsForDay(events, selected[0]);
-			setDrawerContent(eventsForSelectedDay);
-			setIsDrawerOpen(Boolean(eventsForSelectedDay.length));
+			if (eventsForSelectedDay.length) {
+				if (eventListId.current) {
+					update({
+						id: eventListId.current,
+						state: { isOpen: true },
+						slots: {
+							upperLeftSlot: (
+								<Button
+									variant="soft"
+									radius="full"
+									className="w-8 h-8 justify-self-start"
+									onClick={() => openCreateNewEvent(selected[0])}
+								>
+									+
+								</Button>
+							),
+						},
+						props: { events: eventsForSelectedDay },
+					});
+				} else {
+					eventListId.current = push({
+						state: { isOpen: true },
+						slots: {
+							upperLeftSlot: (
+								<Button
+									variant="soft"
+									radius="full"
+									className="w-8 h-8 justify-self-start"
+									onClick={() => openCreateNewEvent(selected[0])}
+								>
+									+
+								</Button>
+							),
+						},
+						props: {
+							events: eventsForSelectedDay,
+						},
+						component: EventList,
+					});
+				}
+			} else {
+				if (newEventSliderId.current) {
+					update({
+						id: newEventSliderId.current,
+						state: { isOpen: true },
+						props: { events: eventsForSelectedDay },
+					});
+				} else {
+					newEventSliderId.current = push({
+						state: { isOpen: true },
+						props: {
+							calendarId,
+							persons,
+							datetime: selected[0].toISOString(),
+						},
+						component: CreateEventPanel,
+					});
+				}
+			}
 		}
-	}, [selected, events]); // do I want to re-run this effect when new events are pushed into the state (by the backend realtime api)?
+	}, [calendarId, selected, events]); // do I want to re-run this effect when new events are pushed into the state (by the backend realtime api)? Yes
+	// ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+	// Needs to be refactored to be more readable and concise
 
 	if (loading) {
-		return <Spinner />;
+		return (
+			<Flex justify="center">
+				<Spinner />
+			</Flex>
+		);
 	}
 
 	if (!calendarFromBackend) {
@@ -261,22 +342,6 @@ export const Component = () => {
 					))}
 				</div>
 			</Card>
-			{calendarId && (
-				<Card mt="4" className="p-4">
-					<CreateEventPanel
-						calendarId={calendarId}
-						datetime={selected[0]?.toISOString()}
-						persons={persons}
-					/>
-				</Card>
-			)}
-			<SlidingDrawer
-				isOpen={isDrawerOpen}
-				onOpenChange={setIsDrawerOpen}
-				closeOnClickOutside={false}
-			>
-				<EventList events={drawerContent} />
-			</SlidingDrawer>
 		</>
 	);
 };

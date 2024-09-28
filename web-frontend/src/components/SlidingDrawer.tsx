@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import type { PropsWithChildren } from "react";
+import type { PropsWithChildren, ReactNode } from "react";
 import { Card, Box, Text, Heading, Button } from "@radix-ui/themes";
 
 type Props = {
@@ -8,6 +8,7 @@ type Props = {
 	closeOnClickOutside?: boolean;
 	title?: string;
 	description?: string;
+	upperLeftSlot?: ReactNode,
 } & PropsWithChildren;
 
 export const SlidingDrawer = ({
@@ -17,6 +18,7 @@ export const SlidingDrawer = ({
 	children,
 	title,
 	description,
+	upperLeftSlot,
 }: Props) => {
 	const drawerRef = useRef<HTMLDivElement>(null);
 	const [isVisible, setIsVisible] = useState(false);
@@ -73,6 +75,7 @@ export const SlidingDrawer = ({
 		>
 			<Box className="p-4">
 				<div className="grid grid-cols-3 items-center mb-4">
+					{upperLeftSlot ?? null}
 					<div className="col-start-2 justify-self-center w-12 h-1.5 bg-gray-300 rounded-full" />
 					<Button
 						variant="soft"

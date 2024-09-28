@@ -1,10 +1,11 @@
-import type { FunctionComponent } from "react";
-import { atom, selector, selectorFamily } from "recoil";
+import type { FunctionComponent, ReactNode } from "react";
+import { atom } from "recoil";
 
 export type Slide = {
 	id: string;
 	state: { isOpen: boolean };
-	data: any;
+	slots?: { upperLeftSlot: ReactNode };
+	props: any;
 	component: FunctionComponent<any>;
 };
 /**

@@ -18,8 +18,9 @@ export const SlidingDrawerManager = () => {
 					onOpenChange={(isOpen: boolean) =>
 						update({ ...slide, state: { ...slide.state, isOpen } })
 					}
+					{...slide.slots}
 				>
-					<slide.component {...slide.data} />
+					<slide.component {...slide.props} />
 				</SlidingDrawer>
 			))}
 		</>

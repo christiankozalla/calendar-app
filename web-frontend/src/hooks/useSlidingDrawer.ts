@@ -13,14 +13,14 @@ export const useSlidingDrawer = () => {
 
 	const update = (slide: Pick<Slide, "id"> & Partial<Slide>) => {
 		setSlidingDrawerState((prev) => {
-			const mergedSlide = prev.find((s) => s.id === slide.id);
-			if (!mergedSlide) {
+			const slideToMergeWith = prev.find((s) => s.id === slide.id);
+			if (!slideToMergeWith) {
 				console.warn("Did not update SlidingDrawerState - Could not find id: ", slide.id);
 				return prev;
 			}
 			return [
 				...prev.filter((s) => s.id !== slide.id),
-				{ ...mergedSlide, ...slide }, // updated slide, Note that the ordering might be relevant here!
+				{ id: slideToMergeWith.id, props: { ...slideToMergeWith.props, ...slide.props }, state: { ...slideToMergeWith.state, ...slide.state }, component: slide.component || slideToMergeWith.component }, // updated slide, Note that the ordering might be relevant here!
 			]
 		});
 	};

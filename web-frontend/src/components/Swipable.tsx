@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import type { PropsWithChildren } from "react";
 
 type Props = PropsWithChildren<{
@@ -24,8 +24,8 @@ export type OnSwipeParams = {
 
 export const Swipable = ({ children, onSwipe, global = false }: Props) => {
 	const wrapperRef = useRef<HTMLDivElement>(null);
-	const [startX, setStartX] = useState(0);
-	const [startY, setStartY] = useState(0);
+	const startX = useRef(0);
+	const startY = useRef(0);
 
 	const handleTouchStart = useCallback(
 		(e: TouchEvent) => {
@@ -37,8 +37,8 @@ export const Swipable = ({ children, onSwipe, global = false }: Props) => {
 				return;
 			}
 
-			setStartX(e.touches[0].clientX);
-			setStartY(e.touches[0].clientY);
+			startX.current = e.touches[0].clientX;
+			startY.current = e.touches[0].clientY;
 		},
 		[global],
 	);
@@ -55,10 +55,17 @@ export const Swipable = ({ children, onSwipe, global = false }: Props) => {
 
 			const endX = e.changedTouches[0].clientX;
 			const endY = e.changedTouches[0].clientY;
-			const deltaX = endX - startX;
-			const deltaY = endY - startY;
+			const deltaX = endX - startX.current;
+			const deltaY = endY - startY.current;
 
-			onSwipe({ startX, startY, endX, endY, deltaX, deltaY });
+			onSwipe({
+				startX: startX.current,
+				startY: startY.current,
+				endX,
+				endY,
+				deltaX,
+				deltaY,
+			});
 		},
 		[startX, startY, onSwipe, global],
 	);

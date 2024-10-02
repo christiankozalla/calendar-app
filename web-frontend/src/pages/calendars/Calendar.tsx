@@ -211,11 +211,15 @@ export const Component = () => {
 					});
 				}
 			} else {
+				// No events for selected date
 				if (newEventSliderId.current) {
 					update({
 						id: newEventSliderId.current,
 						state: { isOpen: true },
-						props: { events: eventsForSelectedDay },
+						props: {
+							persons,
+							datetime: selected[0].toISOString(),
+						},
 					});
 				} else {
 					newEventSliderId.current = push({
@@ -248,9 +252,7 @@ export const Component = () => {
 
 	return (
 		<>
-			<Heading size="6" mb="6">
-				{calendarFromBackend?.name}
-			</Heading>
+			<Heading size="3">{calendarFromBackend?.name}</Heading>
 			<Card className="p-4">
 				<Flex justify="between" align="center" className="mb-4">
 					<IconButton

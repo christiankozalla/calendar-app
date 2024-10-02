@@ -36,8 +36,8 @@ export const CreateEventPanel = ({
 	description,
 	persons,
 }: Props) => {
-	const [date, setDate] = useState<string>();
-	const [time, setTime] = useState<string>();
+	const [date, setDate] = useState<string>("");
+	const [time, setTime] = useState<string>("");
 
 	useEffect(() => {
 		const newDate = datetime ? format(datetime, "yyyy-MM-dd") : "";

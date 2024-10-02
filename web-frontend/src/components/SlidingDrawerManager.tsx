@@ -19,7 +19,7 @@ export const SlidingDrawerManager = () => {
 			for (const slide of state) {
 				update({ ...slide, state: { ...slide.state, isOpen: false } });
 			}
-		} else if (swipingDirections.includes(Direction.UP)) {
+		} else if (swipingDirections.includes(Direction.UP) && state.length > 0) {
 			const slide = state[state.length - 1];
 			update({ ...slide, state: { ...slide.state, isOpen: true } });
 		}

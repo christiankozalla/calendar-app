@@ -8,7 +8,7 @@ type Props = {
 	closeOnClickOutside?: boolean;
 	title?: string;
 	description?: string;
-	upperLeftSlot?: ReactNode,
+	upperLeftSlot?: ReactNode;
 } & PropsWithChildren;
 
 export const SlidingDrawer = ({

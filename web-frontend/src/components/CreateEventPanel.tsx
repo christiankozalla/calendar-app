@@ -1,4 +1,4 @@
-import type { FormEventHandler } from "react";
+import { useEffect, useState, type FormEventHandler } from "react";
 import type { BaseModel } from "pocketbase";
 import { pb } from "@/api/pocketbase";
 import type { EventsRecord, PersonsResponse } from "@/api/pocketbase-types";
@@ -36,10 +36,17 @@ export const CreateEventPanel = ({
 	description,
 	persons,
 }: Props) => {
-	const defaultDate = datetime ? format(datetime, "yyyy-MM-dd") : "";
-	const defaultTime = datetime
-		? new Date(datetime).toISOString().split("T")[1].substring(0, 5)
-		: "";
+	const [date, setDate] = useState<string>();
+	const [time, setTime] = useState<string>();
+
+	useEffect(() => {
+		const newDate = datetime ? format(datetime, "yyyy-MM-dd") : "";
+		const newTime = datetime
+			? new Date(datetime).toISOString().split("T")[1].substring(0, 5)
+			: "";
+		setDate(newDate);
+		setTime(newTime);
+	}, [datetime]);
 
 	return (
 		<>
@@ -63,12 +70,10 @@ export const CreateEventPanel = ({
 							<input
 								type="date"
 								name="date"
-								defaultValue={defaultDate}
+								value={date}
 								className="w-full px-3 py-2 border rounded-md"
+								onChange={(e) => setDate(format(e.target.value, "yyyy-MM-dd"))}
 								required
-								onChange={(e) => {
-									console.log("date", e);
-								}}
 							/>
 						</Box>
 						<Box className="flex-1">
@@ -78,8 +83,16 @@ export const CreateEventPanel = ({
 							<input
 								type="time"
 								name="time"
-								defaultValue={defaultTime}
+								value={time}
 								className="w-full px-3 py-2 border rounded-md"
+								onChange={(e) =>
+									setTime(
+										new Date(e.target.value)
+											.toISOString()
+											.split("T")[1]
+											.substring(0, 5),
+									)
+								}
 								required
 							/>
 						</Box>

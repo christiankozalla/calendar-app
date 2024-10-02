@@ -3,7 +3,7 @@ import { Popover, Checkbox, Flex, Text, Button } from "@radix-ui/themes";
 import type { BaseModel } from "pocketbase";
 
 type MultiSelectProps<T extends BaseModel> = {
-	options: T[];
+	options?: T[];
 	placeholder: string;
 	formfieldName: string;
 };
@@ -39,7 +39,7 @@ export function MultiSelect<T extends BaseModel>({
 				</Popover.Trigger>
 				<Popover.Content className="w-[200px]">
 					<Flex gap="4">
-						{options.map((option) => (
+						{options?.map((option) => (
 							<label
 								key={option.id}
 								className="flex items-center space-x-2 cursor-pointer"

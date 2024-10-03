@@ -3,6 +3,7 @@ import type { PropsWithChildren } from "react";
 
 type Props = PropsWithChildren<{
 	global?: boolean; // if true, swipes on the whole window/screen will be detected
+	className?: string;
 	onSwipe: ({
 		startX,
 		startY,
@@ -22,7 +23,12 @@ export type OnSwipeParams = {
 	deltaY: number;
 };
 
-export const Swipable = ({ children, onSwipe, global = false }: Props) => {
+export const Swipable = ({
+	children,
+	onSwipe,
+	className,
+	global = false,
+}: Props) => {
 	const wrapperRef = useRef<HTMLDivElement>(null);
 	const startX = useRef(0);
 	const startY = useRef(0);
@@ -80,7 +86,11 @@ export const Swipable = ({ children, onSwipe, global = false }: Props) => {
 		};
 	}, [handleTouchStart, handleTouchEnd]);
 
-	return <div ref={wrapperRef}>{children}</div>;
+	return (
+		<div className={className || ""} ref={wrapperRef}>
+			{children}
+		</div>
+	);
 };
 
 export enum Direction {

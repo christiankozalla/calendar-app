@@ -10,7 +10,7 @@ import { useParams } from "react-router-dom";
 import { Day, useLilius } from "use-lilius";
 import { isToday, format, startOfMonth, endOfMonth, isSameDay } from "date-fns";
 import {
-	Card,
+	Box,
 	Heading,
 	Text,
 	Flex,
@@ -22,6 +22,13 @@ import {
 import { EventList } from "@/components/EventList";
 import { CreateEventPanel } from "@/components/CreateEventPanel";
 import { useSlidingDrawer } from "@/hooks/useSlidingDrawer";
+import { Header } from "@/components/Header";
+import {
+	Direction,
+	type OnSwipeParams,
+	Swipable,
+	swipingDirection,
+} from "@/components/Swipable";
 
 const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 const MONTHS = [
@@ -160,6 +167,15 @@ export const Component = () => {
 		weekStartsOn: Day.MONDAY,
 	});
 
+	const onSwipe = (output: OnSwipeParams) => {
+		const directions = swipingDirection(output);
+		if (directions.includes(Direction.LEFT)) {
+			viewPreviousMonth();
+		} else if (directions.includes(Direction.RIGHT)) {
+			viewNextMonth();
+		}
+	};
+
 	const yearsRange = Array.from(
 		{ length: 10 },
 		(_, i) => viewing.getFullYear() - 5 + i,
@@ -240,21 +256,23 @@ export const Component = () => {
 
 	if (loading) {
 		return (
-			<Flex justify="center">
-				<Spinner />
+			<Flex className="h-screen" justify="center" align="center">
+				<Spinner size="3" />
 			</Flex>
 		);
 	}
 
 	if (!calendarFromBackend) {
-		return <Card className="p-4">No calendar for this ID {calendarId}</Card>;
+		return <Box className="p-4">No calendar for this ID {calendarId}</Box>;
 	}
 
 	return (
 		<>
-			<Heading size="3">{calendarFromBackend?.name}</Heading>
-			<Card className="p-4">
-				<Flex justify="between" align="center" className="mb-4">
+			<Header>
+				<Heading size="3">{calendarFromBackend?.name}</Heading>
+			</Header>
+			<Box className="py-2">
+				<Flex justify="between" align="center" className="mx-2 mb-4">
 					<IconButton
 						onClick={viewPreviousMonth}
 						variant="ghost"
@@ -304,10 +322,7 @@ export const Component = () => {
 					</IconButton>
 				</Flex>
 
-				<Heading size="4" className="mb-4 text-center">
-					{format(viewing, "MMMM yyyy")}
-				</Heading>
-				<div className="grid grid-cols-7 gap-1">
+				<Swipable className="grid grid-cols-7 gap-1" onSwipe={onSwipe}>
 					{DAYS.map((dayLabel) => (
 						<div
 							key={dayLabel}
@@ -342,8 +357,8 @@ export const Component = () => {
 							})}
 						</Fragment>
 					))}
-				</div>
-			</Card>
+				</Swipable>
+			</Box>
 		</>
 	);
 };

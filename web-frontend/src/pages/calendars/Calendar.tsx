@@ -29,6 +29,7 @@ import {
 	Swipable,
 	swipingDirection,
 } from "@/components/Swipable";
+import { cx } from "classix";
 
 const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 const MONTHS = [
@@ -322,11 +323,19 @@ export const Component = () => {
 					</IconButton>
 				</Flex>
 
-				<Swipable className="grid grid-cols-7 gap-1" onSwipe={onSwipe}>
-					{DAYS.map((dayLabel) => (
+				<Swipable className="grid grid-cols-7" onSwipe={onSwipe}>
+					{/* {DAYS.map((dayLabel) => (
 						<div
 							key={dayLabel}
 							className="text-center font-semibold text-gray-600 mb-2"
+						>
+							{dayLabel}
+						</div>
+					))} */}
+					{DAYS.map((dayLabel) => (
+						<div
+							key={dayLabel}
+							className="text-center text-gray-600 p-2 border-b border-r border-t border-gray-200"
 						>
 							{dayLabel}
 						</div>
@@ -336,23 +345,66 @@ export const Component = () => {
 						<Fragment key={`week-${weekIndex}`}>
 							{week.map((day) => {
 								const eventsOfThisDay = findEventsForDay(events, day);
+								// className={`aspect-square flex items-center justify-center rounded-2xl
+								const inRangeOfMonth = inRange(
+									day,
+									startOfMonth(viewing),
+									endOfMonth(viewing),
+								);
+
 								return (
-									<button
-										type="button"
+									<div
 										key={day.toString()}
-										className={`aspect-square flex items-center justify-center rounded-2xl 
-									${
-										inRange(day, startOfMonth(viewing), endOfMonth(viewing))
-											? "hover:bg-blue-100"
-											: "text-gray-400"
-									}
-									${isSelected(day) ? "bg-blue-500 hover:bg-blue-500 text-white" : ""}
-									${isToday(day) ? "border-2 border-blue-500" : ""}
-									${Array.isArray(eventsOfThisDay) && eventsOfThisDay.length ? "border-2 border-green-500" : ""}`}
-										onClick={() => select(day, true)}
+										className={cx(
+											"relative",
+											"border-b",
+											"border-r",
+											"border-gray-200",
+											"min-h-[100px]",
+											!inRangeOfMonth && "bg-gray-100",
+											isSelected(day) && "bg-blue-100",
+											isToday(day) && "bg-yellow-50",
+										)}
 									>
-										<Text size="2">{format(day, "d")}</Text>
-									</button>
+										<button
+											type="button"
+											className="flex flex-col flex-auto justify-between w-full h-full"
+											onClick={() => select(day, true)}
+										>
+											<Text
+												size="3"
+												my="1"
+												className={cx(
+													"w-full",
+													"text-center",
+													inRangeOfMonth ? "" : "text-gray-400",
+													isSelected(day) ? "font-bold" : "",
+												)}
+											>
+												{format(day, "d")}
+											</Text>
+											<div className="w-full grow">
+												{eventsOfThisDay &&
+													eventsOfThisDay.map((event) => (
+														<div
+															key={event.id}
+															className="text-xs mb-1 truncate"
+														>
+															<div
+																className={cx(
+																	"h-1",
+																	"w-full",
+																	"mb-1",
+																	/* @ts-ignore - until event.color is implemented */
+																	event.color || "bg-blue-500",
+																)}
+															></div>
+															{event.title}
+														</div>
+													))}
+											</div>
+										</button>
+									</div>
 								);
 							})}
 						</Fragment>

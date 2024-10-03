@@ -77,8 +77,8 @@ export const Swipable = ({
 	);
 
 	useEffect(() => {
-		window.addEventListener("touchstart", handleTouchStart, { passive: false });
-		window.addEventListener("touchend", handleTouchEnd, { passive: false });
+		window.addEventListener("touchstart", handleTouchStart, { passive: true });
+		window.addEventListener("touchend", handleTouchEnd, { passive: true });
 
 		return () => {
 			window.removeEventListener("touchstart", handleTouchStart);

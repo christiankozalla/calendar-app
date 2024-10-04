@@ -30,6 +30,8 @@ import {
 	swipingDirection,
 } from "@/components/Swipable";
 import { cx } from "classix";
+import { useRecoilValue } from "recoil";
+import { ColorsState } from "@/store/Colors";
 
 const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 const MONTHS = [
@@ -50,7 +52,7 @@ const MONTHS = [
 const findEventsForDay = (
 	events: EventsResponse[],
 	day: Date,
-): EventsResponse[] => events?.filter((e) => isSameDay(e.datetime, day));
+): EventsResponse[] => events?.filter((e) => isSameDay(e.startDatetime, day));
 
 export const Component = () => {
 	const calendarId = useParams().calendarId;
@@ -59,6 +61,7 @@ export const Component = () => {
 	const [events, setEvents] = useState<EventsResponse[]>([]);
 	const [persons, setPersons] = useState<PersonsResponse[]>([]);
 	const [loading, setLoading] = useState(true);
+	const colors = useRecoilValue(ColorsState);
 
 	const { push, update } = useSlidingDrawer();
 
@@ -145,7 +148,7 @@ export const Component = () => {
 		(datetime: Date) => {
 			push({
 				state: { isOpen: true },
-				props: { datetime: datetime.toISOString(), persons },
+				props: { startDatetime: datetime.toISOString(), persons },
 				component: CreateEventPanel,
 			});
 		},
@@ -235,7 +238,7 @@ export const Component = () => {
 						state: { isOpen: true },
 						props: {
 							persons,
-							datetime: selected[0].toISOString(),
+							startDatetime: selected[0].toISOString(),
 						},
 					});
 				} else {
@@ -244,7 +247,7 @@ export const Component = () => {
 						props: {
 							calendarId,
 							persons,
-							datetime: selected[0].toISOString(),
+							startDatetime: selected[0].toISOString(),
 						},
 						component: CreateEventPanel,
 					});
@@ -272,8 +275,8 @@ export const Component = () => {
 			<Header>
 				<Heading size="3">{calendarFromBackend?.name}</Heading>
 			</Header>
-			<Box className="py-2">
-				<Flex justify="between" align="center" className="mx-2 mb-4">
+			<Box>
+				<Flex justify="between" align="center" className="mx-2 my-2">
 					<IconButton
 						onClick={viewPreviousMonth}
 						variant="ghost"
@@ -324,14 +327,6 @@ export const Component = () => {
 				</Flex>
 
 				<Swipable className="grid grid-cols-7" onSwipe={onSwipe}>
-					{/* {DAYS.map((dayLabel) => (
-						<div
-							key={dayLabel}
-							className="text-center font-semibold text-gray-600 mb-2"
-						>
-							{dayLabel}
-						</div>
-					))} */}
 					{DAYS.map((dayLabel) => (
 						<div
 							key={dayLabel}
@@ -345,7 +340,6 @@ export const Component = () => {
 						<Fragment key={`week-${weekIndex}`}>
 							{week.map((day) => {
 								const eventsOfThisDay = findEventsForDay(events, day);
-								// className={`aspect-square flex items-center justify-center rounded-2xl
 								const inRangeOfMonth = inRange(
 									day,
 									startOfMonth(viewing),
@@ -391,13 +385,12 @@ export const Component = () => {
 															className="text-xs mb-1 truncate"
 														>
 															<div
-																className={cx(
-																	"h-1",
-																	"w-full",
-																	"mb-1",
-																	/* @ts-ignore - until event.color is implemented */
-																	event.color || "bg-blue-500",
-																)}
+																className={cx("h-1", "w-full", "mb-1")}
+																style={{
+																	backgroundColor: event.color
+																		? colors[event.color].hex
+																		: "blue",
+																}}
 															></div>
 															{event.title}
 														</div>

@@ -9,19 +9,19 @@ import { MultiSelect } from "./Multiselect";
 type Props = {
 	calendarId: BaseModel["id"];
 	persons: PersonsResponse[];
-} & Pick<EventsRecord, "datetime" | "title" | "description">;
+} & Pick<EventsRecord, "startDatetime" | "endDatetime" | "title" | "description">;
 
 const submit: FormEventHandler<HTMLFormElement> = async (event) => {
 	event.preventDefault();
 	const formData = new FormData(event.target as HTMLFormElement);
-	const date = formData.get("date");
-	const time = formData.get("time");
+	const date = formData.get("startDate");
+	const time = formData.get("startTime");
 	if (date && time) {
 		const [hours, minutes] = (time as string).split(":");
 		const datetime = new Date(date as string);
 		datetime.setHours(Number(hours));
 		datetime.setMinutes(Number(minutes));
-		formData.set("datetime", datetime.toISOString());
+		formData.set("startDatetime", datetime.toISOString());
 	}
 	formData.set("owner", pb.authStore.model?.id);
 
@@ -31,7 +31,7 @@ const submit: FormEventHandler<HTMLFormElement> = async (event) => {
 
 export const CreateEventPanel = ({
 	calendarId,
-	datetime,
+	startDatetime,
 	title,
 	description,
 	persons,
@@ -40,13 +40,13 @@ export const CreateEventPanel = ({
 	const [time, setTime] = useState<string>("");
 
 	useEffect(() => {
-		const newDate = datetime ? format(datetime, "yyyy-MM-dd") : "";
-		const newTime = datetime
-			? new Date(datetime).toISOString().split("T")[1].substring(0, 5)
+		const newDate = startDatetime ? format(startDatetime, "yyyy-MM-dd") : "";
+		const newTime = startDatetime
+			? new Date(startDatetime).toISOString().split("T")[1].substring(0, 5)
 			: "";
 		setDate(newDate);
 		setTime(newTime);
-	}, [datetime]);
+	}, [startDatetime]);
 
 	return (
 		<>
@@ -69,7 +69,7 @@ export const CreateEventPanel = ({
 							</Text>
 							<input
 								type="date"
-								name="date"
+								name="startDate"
 								value={date}
 								className="w-full px-3 py-2 border rounded-md"
 								onChange={(e) => setDate(format(e.target.value, "yyyy-MM-dd"))}
@@ -82,7 +82,7 @@ export const CreateEventPanel = ({
 							</Text>
 							<input
 								type="time"
-								name="time"
+								name="startTime"
 								value={time}
 								className="w-full px-3 py-2 border rounded-md"
 								onChange={(e) =>

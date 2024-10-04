@@ -7,6 +7,7 @@ import type { RecordService } from "pocketbase";
 
 export enum Collections {
 	Calendars = "calendars",
+	Colors = "colors",
 	Events = "events",
 	Invitations = "invitations",
 	Locations = "locations",
@@ -44,13 +45,20 @@ export type CalendarsRecord = {
 	users?: RecordIdString[];
 };
 
+export type ColorsRecord = {
+	hex?: string;
+	name?: string;
+};
+
 export type EventsRecord = {
 	calendar?: RecordIdString;
-	datetime?: IsoDateString;
+	color?: RecordIdString;
 	description?: HTMLString;
+	endDatetime?: IsoDateString;
 	location?: RecordIdString;
 	owner?: RecordIdString[];
 	persons?: RecordIdString[];
+	startDatetime?: IsoDateString;
 	title?: string;
 };
 
@@ -82,6 +90,8 @@ export type UsersRecord = {
 // Response types include system fields and match responses from the PocketBase API
 export type CalendarsResponse<Texpand = unknown> = Required<CalendarsRecord> &
 	BaseSystemFields<Texpand>;
+export type ColorsResponse<Texpand = unknown> = Required<ColorsRecord> &
+	BaseSystemFields<Texpand>;
 export type EventsResponse<Texpand = unknown> = Required<EventsRecord> &
 	BaseSystemFields<Texpand>;
 export type InvitationsResponse<Texpand = unknown> =
@@ -97,6 +107,7 @@ export type UsersResponse<Texpand = unknown> = Required<UsersRecord> &
 
 export type CollectionRecords = {
 	calendars: CalendarsRecord;
+	colors: ColorsRecord;
 	events: EventsRecord;
 	invitations: InvitationsRecord;
 	locations: LocationsRecord;
@@ -106,6 +117,7 @@ export type CollectionRecords = {
 
 export type CollectionResponses = {
 	calendars: CalendarsResponse;
+	colors: ColorsResponse;
 	events: EventsResponse;
 	invitations: InvitationsResponse;
 	locations: LocationsResponse;
@@ -118,6 +130,7 @@ export type CollectionResponses = {
 
 export type TypedPocketBase = PocketBase & {
 	collection(idOrName: "calendars"): RecordService<CalendarsResponse>;
+	collection(idOrName: "colors"): RecordService<ColorsResponse>;
 	collection(idOrName: "events"): RecordService<EventsResponse>;
 	collection(idOrName: "invitations"): RecordService<InvitationsResponse>;
 	collection(idOrName: "locations"): RecordService<LocationsResponse>;

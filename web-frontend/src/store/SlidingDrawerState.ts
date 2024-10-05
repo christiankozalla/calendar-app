@@ -4,7 +4,7 @@ import { atom } from "recoil";
 export type Slide = {
 	id: string;
 	state: { isOpen: boolean };
-	slots?: { upperLeftSlot: ReactNode };
+	slots?: { upperLeftSlot?: ReactNode };
 	props: any;
 	component: FunctionComponent<any>;
 };

@@ -1,15 +1,18 @@
 import { useEffect, useState, type FormEventHandler } from "react";
-import type { BaseModel } from "pocketbase";
+import { useRecoilValue } from "recoil";
 import { pb } from "@/api/pocketbase";
-import type { EventsRecord, PersonsResponse } from "@/api/pocketbase-types";
+import type { EventsResponse, PersonsResponse } from "@/api/pocketbase-types";
 import { TextField, Button, Flex, Box, Text, TextArea } from "@radix-ui/themes";
 import { format } from "date-fns";
 import { MultiSelect } from "./Multiselect";
+import { PersonsState } from "@/store/Persons";
 
 type Props = {
-	calendarId: BaseModel["id"];
 	persons: PersonsResponse[];
-} & Pick<EventsRecord, "startDatetime" | "endDatetime" | "title" | "description">;
+} & Pick<
+	EventsResponse,
+	"id" | "startDatetime" | "endDatetime" | "title" | "description" | "calendar"
+>;
 
 const submit: FormEventHandler<HTMLFormElement> = async (event) => {
 	event.preventDefault();
@@ -25,17 +28,25 @@ const submit: FormEventHandler<HTMLFormElement> = async (event) => {
 	}
 	formData.set("owner", pb.authStore.model?.id);
 
-	await pb.collection("events").create(formData);
+	const id = formData.get("id");
+	if (id) {
+		// update existing event
+		await pb.collection("events").update(id as string, formData);
+	} else {
+		await pb.collection("events").create(formData);
+	}
 	(event.target as HTMLFormElement).reset();
 };
 
-export const CreateEventPanel = ({
-	calendarId,
+export const EventPanelCrud = ({
+	id,
+	calendar,
 	startDatetime,
 	title,
 	description,
-	persons,
+	persons, // persons that are participating in the event
 }: Props) => {
+	const allPersons = useRecoilValue(PersonsState); // all existing persons in the backend for this user
 	const [date, setDate] = useState<string>("");
 	const [time, setTime] = useState<string>("");
 
@@ -50,8 +61,8 @@ export const CreateEventPanel = ({
 
 	return (
 		<>
-			<Text size="5" weight="bold" mb="3" className="block">
-				Create New Event
+			<Text size="4" weight="bold" mb="2" className="block">
+				{id ? "Update Event" : "Create New Event"}
 			</Text>
 			<form onSubmit={submit}>
 				<Flex direction="column" gap="3">
@@ -111,14 +122,16 @@ export const CreateEventPanel = ({
 						<MultiSelect
 							formfieldName="persons"
 							placeholder="Select participating persons"
-							options={persons}
+							initiallySelected={persons}
+							options={allPersons}
 						/>
 					</Box>
 
-					<input type="hidden" name="calendar" value={calendarId} />
+					<input type="hidden" name="calendar" value={calendar} />
+					{id && <input type="hidden" name="id" value={id} />}
 
 					<Button type="submit" className="mt-2">
-						Create Event
+						{id ? "Update Event" : "Create Event"}
 					</Button>
 				</Flex>
 			</form>

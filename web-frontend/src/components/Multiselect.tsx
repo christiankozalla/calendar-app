@@ -4,17 +4,20 @@ import type { BaseModel } from "pocketbase";
 
 type MultiSelectProps<T extends BaseModel> = {
 	options?: T[];
+	initiallySelected?: T[];
 	placeholder: string;
 	formfieldName: string;
 };
 
 export function MultiSelect<T extends BaseModel>({
 	options,
+	initiallySelected = [],
 	placeholder,
 	formfieldName,
 }: MultiSelectProps<T>) {
 	const [open, setOpen] = useState(false);
-	const [selectedOptions, setSelectedOptions] = useState<T[]>([]);
+	const [selectedOptions, setSelectedOptions] =
+		useState<T[]>(initiallySelected);
 
 	const handleToggle = (option: T) => {
 		setSelectedOptions((prev) =>

@@ -20,7 +20,7 @@ import {
 	Button,
 } from "@radix-ui/themes";
 import { EventList } from "@/components/EventList";
-import { CreateEventPanel } from "@/components/CreateEventPanel";
+import { EventPanelCrud } from "@/components/EventPanelCrud";
 import { useSlidingDrawer } from "@/hooks/useSlidingDrawer";
 import { Header } from "@/components/Header";
 import {
@@ -30,8 +30,9 @@ import {
 	swipingDirection,
 } from "@/components/Swipable";
 import { cx } from "classix";
-import { useRecoilValue } from "recoil";
+import { useRecoilState, useRecoilValue, useSetRecoilState } from "recoil";
 import { ColorsState } from "@/store/Colors";
+import { PersonsState } from "@/store/Persons";
 
 const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 const MONTHS = [
@@ -59,7 +60,7 @@ export const Component = () => {
 
 	const [calendarFromBackend, setCalendar] = useState<CalendarsResponse>();
 	const [events, setEvents] = useState<EventsResponse[]>([]);
-	const [persons, setPersons] = useState<PersonsResponse[]>([]);
+	const [persons, setPersons] = useRecoilState(PersonsState);
 	const [loading, setLoading] = useState(true);
 	const colors = useRecoilValue(ColorsState);
 
@@ -75,6 +76,7 @@ export const Component = () => {
 				.getList(undefined, undefined, {
 					// TODO: enhance filter with viewing month (from useLilius)
 					filter: pb.filter("calendar = {:calendarId}", { calendarId }),
+					expand: "persons",
 				});
 
 			const personsRequest = pb
@@ -149,7 +151,7 @@ export const Component = () => {
 			push({
 				state: { isOpen: true },
 				props: { startDatetime: datetime.toISOString(), persons },
-				component: CreateEventPanel,
+				component: EventPanelCrud,
 			});
 		},
 		[persons],
@@ -249,7 +251,7 @@ export const Component = () => {
 							persons,
 							startDatetime: selected[0].toISOString(),
 						},
-						component: CreateEventPanel,
+						component: EventPanelCrud,
 					});
 				}
 			}

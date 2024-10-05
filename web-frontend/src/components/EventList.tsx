@@ -9,11 +9,11 @@ export const EventList = ({ events }: { events: EventsResponse[] }) => {
 					<Flex direction="column" gap="2">
 						<Heading size="4">{event.title || "Untitled Event"}</Heading>
 
-						{event.datetime && (
+						{event.startDatetime && (
 							<Flex align="center" gap="2">
 								{/* <CalendarIcon className="w-4 h-4 text-gray-500" /> */}
 								<Text size="2" className="text-gray-600">
-									{new Date(event.datetime).toLocaleString()}
+									{new Date(event.startDatetime).toLocaleString()}
 								</Text>
 							</Flex>
 						)}

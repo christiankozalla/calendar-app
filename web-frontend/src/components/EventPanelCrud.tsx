@@ -6,7 +6,6 @@ import { TextField, Button, Flex, Box, Text, TextArea } from "@radix-ui/themes";
 import { format } from "date-fns";
 import { MultiSelect } from "./Multiselect";
 import { PersonsState } from "@/store/Persons";
-import type { EventsRecord } from "@/api/pocketbase-types";
 
 type Props = {
 	persons: PersonsResponse[];

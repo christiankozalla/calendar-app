@@ -32,7 +32,7 @@ export const Navigation = () => {
 							+
 						</Text>
 					</Button>
-					<div></div>
+					<div />
 					<Link to={`/calendars/${params.calendarId}/activity`}>
 						<NotificationIcon className="w-8 h-8 mx-auto" />
 						<Text size="2">Activity</Text>

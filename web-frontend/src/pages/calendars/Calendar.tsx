@@ -1,14 +1,10 @@
 import { Fragment, useCallback, useRef, useState } from "react";
 import { pb } from "@/api/pocketbase";
-import type {
-	EventsResponse,
-	CalendarsResponse,
-	PersonsResponse,
-} from "@/api/pocketbase-types";
+import type { EventsResponse, CalendarsResponse } from "@/api/pocketbase-types";
 import { useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { Day, useLilius } from "use-lilius";
-import { isToday, format, startOfMonth, endOfMonth, isSameDay } from "date-fns";
+import { isSameDay, startOfMonth, endOfMonth, isToday, format } from "date-fns";
 import {
 	Box,
 	Heading,
@@ -19,6 +15,7 @@ import {
 	Spinner,
 	Button,
 } from "@radix-ui/themes";
+import { cx } from "classix";
 import { EventList } from "@/components/EventList";
 import { EventPanelCrud } from "@/components/EventPanelCrud";
 import { useSlidingDrawer } from "@/hooks/useSlidingDrawer";
@@ -29,8 +26,7 @@ import {
 	Swipable,
 	swipingDirection,
 } from "@/components/Swipable";
-import { cx } from "classix";
-import { useRecoilState, useRecoilValue, useSetRecoilState } from "recoil";
+import { useRecoilState, useRecoilValue } from "recoil";
 import { ColorsState } from "@/store/Colors";
 import { PersonsState } from "@/store/Persons";
 
@@ -256,7 +252,7 @@ export const Component = () => {
 				}
 			}
 		}
-	}, [calendarId, selected, events]); // do I want to re-run this effect when new events are pushed into the state (by the backend realtime api)? Yes
+	}, [calendarId, selected, events, persons]);
 	// ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 	// Needs to be refactored to be more readable and concise
 
@@ -338,8 +334,8 @@ export const Component = () => {
 						</div>
 					))}
 
-					{calendar[0].map((week, weekIndex) => (
-						<Fragment key={`week-${weekIndex}`}>
+					{calendar[0].map((week) => (
+						<Fragment key={week.toString()}>
 							{week.map((day) => {
 								const eventsOfThisDay = findEventsForDay(events, day);
 								const inRangeOfMonth = inRange(
@@ -380,23 +376,19 @@ export const Component = () => {
 												{format(day, "d")}
 											</Text>
 											<div className="w-full grow">
-												{eventsOfThisDay &&
-													eventsOfThisDay.map((event) => (
+												{eventsOfThisDay?.map((event) => (
+													<div key={event.id} className="text-xs mb-1 truncate">
 														<div
-															key={event.id}
-															className="text-xs mb-1 truncate"
-														>
-															<div
-																className={cx("h-1", "w-full", "mb-1")}
-																style={{
-																	backgroundColor: event.color
-																		? colors[event.color].hex
-																		: "blue",
-																}}
-															></div>
-															{event.title}
-														</div>
-													))}
+															className={cx("h-1", "w-full", "mb-1")}
+															style={{
+																backgroundColor: event.color
+																	? colors[event.color].hex
+																	: "blue",
+															}}
+														/>
+														{event.title}
+													</div>
+												))}
 											</div>
 										</button>
 									</div>

@@ -66,7 +66,7 @@ export const EventList = ({
 									size="2"
 									className="text-gray-700"
 									dangerouslySetInnerHTML={{ __html: event.description }}
-								></Text>
+								/>
 							</Box>
 						)}
 					</Flex>

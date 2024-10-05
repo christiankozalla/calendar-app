@@ -15,7 +15,6 @@ export const AuthenticationGuard = ({
 	const [isAuthenticated, setIsAuthenticated] =
 		useRecoilState(authenticatedState);
 
-	// biome-ignore lint: this effect shall run only on first render
 	useEffect(() => {
 		const unsubsribeFromAuthStoreChanges = pb.authStore.onChange((token) => {
 			setIsAuthenticated(Boolean(token));

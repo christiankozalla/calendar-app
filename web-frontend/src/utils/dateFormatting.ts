@@ -52,7 +52,7 @@ export function formatEventDate(isoString: string) {
 	const date = new Date(isoString);
 	const now = new Date();
 
-	let dateString;
+	let dateString: string;
 	if (isToday(date, now)) {
 		dateString = "Today";
 	} else if (isTomorrow(date, now)) {
@@ -72,7 +72,7 @@ export function formatEventDate(isoString: string) {
 	const minutes = date.getMinutes();
 	const ampm = hours >= 12 ? "PM" : "AM";
 	const formattedHours = hours % 12 || 12; // Convert 24h to 12h format
-	const formattedMinutes = minutes < 10 ? "0" + minutes : minutes;
+	const formattedMinutes = minutes < 10 ? `0${minutes}` : minutes;
 	const timeString = `${formattedHours}:${formattedMinutes} ${ampm}`;
 
 	return `${dateString}, ${timeString}`;

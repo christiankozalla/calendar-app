@@ -6,6 +6,7 @@ import { TextField, Button, Flex, Box, Text, TextArea } from "@radix-ui/themes";
 import { format } from "date-fns";
 import { MultiSelect } from "./Multiselect";
 import { PersonsState } from "@/store/Persons";
+import type { EventsRecord } from "@/api/pocketbase-types";
 
 type Props = {
 	persons: PersonsResponse[];
@@ -71,7 +72,7 @@ export const EventPanelCrud = ({
 						defaultValue={title}
 						placeholder="Event Title"
 						required
-					></TextField.Root>
+					/>
 
 					<Flex gap="2">
 						<Box className="flex-1">

@@ -74,7 +74,7 @@ export const SlidingDrawer = ({
 			  `}
 		>
 			<Box className="pt-3 p-1">
-				<div className="grid grid-cols-3 items-center mb-3">
+				<div className="grid grid-cols-3 items-center mb-2">
 					{upperLeftSlot}
 					<div className="col-start-2 justify-self-center w-12 h-1.5 bg-gray-300 rounded-full" />
 					<Button

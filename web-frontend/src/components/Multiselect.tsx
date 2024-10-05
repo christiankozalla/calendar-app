@@ -45,9 +45,11 @@ export function MultiSelect<T extends BaseModel>({
 						{options?.map((option) => (
 							<label
 								key={option.id}
+								htmlFor={option.id}
 								className="flex items-center space-x-2 cursor-pointer"
 							>
 								<Checkbox
+									id={option.id}
 									checked={selectedOptions.some((o) => o.id === option.id)}
 									onCheckedChange={() => handleToggle(option)}
 								/>

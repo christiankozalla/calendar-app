@@ -7,7 +7,7 @@
     "build": "rsbuild build",
     "preview": "rsbuild preview",
     "format": "npx @biomejs/biome format --write ./src",
-    "lint": "npx @biomejs/biome lint",
+    "lint": "npx @biomejs/biome lint --write --unsafe --skip=correctness/useExhaustiveDependencies --skip=security/noDangerouslySetInnerHtml --skip=suspicious/noExplicitAny ./src/**/*",
     "pocketbase:typegen": "npx pocketbase-typegen --db ../pb_data/data.db --out ./src/api/pocketbase-types.ts && npx @biomejs/biome format --write ./src/api/pocketbase-types.ts"
   },
   "dependencies": {

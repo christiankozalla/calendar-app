@@ -1,6 +1,6 @@
 import { Card, Text, Heading, Flex, Box, Button } from "@radix-ui/themes";
 import { useSlidingDrawer } from "@/hooks/useSlidingDrawer";
-import type { EventsResponse, PersonsRecord } from "@/api/pocketbase-types";
+import type { EventsResponse, PersonsResponse } from "@/api/pocketbase-types";
 import { EventPanelCrud } from "./EventPanelCrud";
 import { CalendarIcon } from "./svg/CalendarIcon";
 import { PeopleIcon } from "./svg/PeopleIcon";
@@ -8,7 +8,7 @@ import { PencilIcon } from "./svg/PencilIcon";
 
 export const EventList = ({
 	events,
-}: { events: EventsResponse<{ persons: PersonsRecord[] }>[] }) => {
+}: { events: EventsResponse<{ persons: PersonsResponse[] }>[] }) => {
 	const { push } = useSlidingDrawer();
 
 	return (

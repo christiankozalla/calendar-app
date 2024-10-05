@@ -73,9 +73,9 @@ export const SlidingDrawer = ({
 				translate-y-full
 			  `}
 		>
-			<Box className="p-4">
-				<div className="grid grid-cols-3 items-center mb-4">
-					{upperLeftSlot ?? null}
+			<Box className="pt-3 p-1">
+				<div className="grid grid-cols-3 items-center mb-3">
+					{upperLeftSlot}
 					<div className="col-start-2 justify-self-center w-12 h-1.5 bg-gray-300 rounded-full" />
 					<Button
 						variant="soft"

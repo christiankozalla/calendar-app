@@ -27,6 +27,7 @@ export const useSlidingDrawer = () => {
 					id: slideToMergeWith.id,
 					props: { ...slideToMergeWith.props, ...slide.props },
 					state: { ...slideToMergeWith.state, ...slide.state },
+					slots: { ...slideToMergeWith.slots, ...slide.slots },
 					component: slide.component || slideToMergeWith.component,
 				}, // updated slide, Note that the ordering might be relevant here!
 			];

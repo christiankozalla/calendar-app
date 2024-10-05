@@ -1,6 +1,10 @@
 import { Fragment, useCallback, useRef, useState } from "react";
 import { pb } from "@/api/pocketbase";
-import type { EventsResponse, CalendarsResponse } from "@/api/pocketbase-types";
+import type {
+	EventsResponse,
+	CalendarsResponse,
+	PersonsResponse,
+} from "@/api/pocketbase-types";
 import { useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { Day, useLilius } from "use-lilius";
@@ -55,7 +59,9 @@ export const Component = () => {
 	const calendarId = useParams().calendarId;
 
 	const [calendarFromBackend, setCalendar] = useState<CalendarsResponse>();
-	const [events, setEvents] = useState<EventsResponse[]>([]);
+	const [events, setEvents] = useState<
+		EventsResponse<{ persons: PersonsResponse[] }>[]
+	>([]);
 	const setPersons = useSetRecoilState(PersonsState);
 	const [loading, setLoading] = useState(true);
 	const colors = useRecoilValue(ColorsState);
@@ -69,11 +75,15 @@ export const Component = () => {
 
 			const eventsRequest = pb
 				.collection("events")
-				.getList(undefined, undefined, {
-					// TODO: enhance filter with viewing month (from useLilius)
-					filter: pb.filter("calendar = {:calendarId}", { calendarId }),
-					expand: "persons",
-				});
+				.getList<EventsResponse<{ persons: PersonsResponse[] }>>(
+					undefined,
+					undefined,
+					{
+						// TODO: enhance filter with viewing month (from useLilius)
+						filter: pb.filter("calendar = {:calendarId}", { calendarId }),
+						expand: "persons",
+					},
+				);
 
 			const personsRequest = pb
 				.collection("persons")
@@ -85,7 +95,6 @@ export const Component = () => {
 			Promise.allSettled([calendarRequest, eventsRequest, personsRequest])
 				.then(([c, e, p]) => {
 					if (e.status === "fulfilled") {
-						console.log("events", e.value.items);
 						setEvents(e.value.items);
 					}
 					if (p.status === "fulfilled") {
@@ -107,9 +116,12 @@ export const Component = () => {
 	}, [calendarId]);
 
 	useEffect(() => {
-		pb.collection("events").subscribe(
+		pb.collection("events").subscribe<
+			EventsResponse<{ persons: PersonsResponse[] }>
+		>(
 			"*",
 			(collection) => {
+				console.log("realtime events update", collection);
 				switch (collection.action) {
 					case "create":
 						setEvents((events) => [...(events ?? []), collection.record]);
@@ -135,6 +147,7 @@ export const Component = () => {
 			{
 				// TODO: enhance filter with viewing month (from useLilius)
 				filter: pb.filter("calendar = {:calendarId}", { calendarId }),
+				expand: "persons",
 			},
 		);
 
@@ -143,13 +156,16 @@ export const Component = () => {
 		};
 	}, [calendarId]);
 
-	const openCreateNewEvent = useCallback((datetime: Date) => {
-		push({
-			state: { isOpen: true },
-			props: { startDatetime: datetime.toISOString(), calendar: calendarId },
-			component: EventPanelCrud,
-		});
-	}, [calendarId]);
+	const openCreateNewEvent = useCallback(
+		(datetime: Date) => {
+			push({
+				state: { isOpen: true },
+				props: { startDatetime: datetime.toISOString(), calendar: calendarId },
+				component: EventPanelCrud,
+			});
+		},
+		[calendarId],
+	);
 
 	const {
 		calendar,

@@ -10,6 +10,7 @@ export const EventList = ({
 	events,
 }: { events: EventsResponse<{ persons: PersonsRecord[] }>[] }) => {
 	const { push } = useSlidingDrawer();
+
 	return (
 		<Flex direction="column" gap="3">
 			{events.map((event) => (

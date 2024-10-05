@@ -14,18 +14,32 @@ type Props = {
 	"id" | "startDatetime" | "endDatetime" | "title" | "description" | "calendar"
 >;
 
-const submit: FormEventHandler<HTMLFormElement> = async (event) => {
-	event.preventDefault();
-	const formData = new FormData(event.target as HTMLFormElement);
-	const date = formData.get("startDate");
-	const time = formData.get("startTime");
-	if (date && time) {
-		const [hours, minutes] = (time as string).split(":");
-		const datetime = new Date(date as string);
+const setDateTimes = (formData: FormData) => {
+	const startDate = formData.get("startDate");
+	const startTime = formData.get("startTime");
+
+	if (startDate && startTime) {
+		const [hours, minutes] = (startTime as string).split(":");
+		const datetime = new Date(startDate as string);
 		datetime.setHours(Number(hours));
 		datetime.setMinutes(Number(minutes));
 		formData.set("startDatetime", datetime.toISOString());
 	}
+	const endDate = formData.get("endDate");
+	const endTime = formData.get("endTime");
+	if (endDate && endTime) {
+		const [hours, minutes] = (endTime as string).split(":");
+		const datetime = new Date(endDate as string);
+		datetime.setHours(Number(hours));
+		datetime.setMinutes(Number(minutes));
+		formData.set("endDatetime", datetime.toISOString());
+	}
+};
+
+const submit: FormEventHandler<HTMLFormElement> = async (event) => {
+	event.preventDefault();
+	const formData = new FormData(event.target as HTMLFormElement);
+	setDateTimes(formData);
 	formData.set("owner", pb.authStore.model?.id);
 
 	const id = formData.get("id");
@@ -42,29 +56,46 @@ export const EventPanelCrud = ({
 	id,
 	calendar,
 	startDatetime,
+	endDatetime,
 	title,
 	description,
 	persons, // persons that are participating in the event
 }: Props) => {
 	const allPersons = useRecoilValue(PersonsState); // all existing persons in the backend for this user
-	const [date, setDate] = useState<string>("");
-	const [time, setTime] = useState<string>("");
+	const [startDate, setStartDate] = useState<string>("");
+	const [startTime, setStartTime] = useState<string>("");
+	const [endDate, setEndDate] = useState<string>("");
+	const [endTime, setEndTime] = useState<string>("");
 
 	useEffect(() => {
 		const newDate = startDatetime ? format(startDatetime, "yyyy-MM-dd") : "";
 		const newTime = startDatetime
 			? new Date(startDatetime).toISOString().split("T")[1].substring(0, 5)
 			: "";
-		setDate(newDate);
-		setTime(newTime);
-	}, [startDatetime]);
+		setStartDate(newDate);
+		setStartTime(newTime);
+		const newEndDate = endDatetime ? format(endDatetime, "yyyy-MM-dd") : "";
+		const newEndTime = endDatetime
+			? new Date(endDatetime).toISOString().split("T")[1].substring(0, 5)
+			: "";
+		setEndDate(newEndDate);
+		setEndTime(newEndTime);
+	}, [startDatetime, endDatetime]);
 
 	return (
 		<>
 			<Text size="4" weight="bold" mb="2" className="block">
 				{id ? "Update Event" : "Create New Event"}
 			</Text>
-			<form onSubmit={submit}>
+			<form
+				onSubmit={submit}
+				onReset={(e) => {
+					setStartTime("");
+					setStartDate("");
+					setEndTime("");
+					setEndDate("");
+				}}
+			>
 				<Flex direction="column" gap="3">
 					<TextField.Root
 						name="title"
@@ -76,14 +107,16 @@ export const EventPanelCrud = ({
 					<Flex gap="2">
 						<Box className="flex-1">
 							<Text size="2" className="mb-1">
-								Date
+								Start Date
 							</Text>
 							<input
 								type="date"
 								name="startDate"
-								value={date}
+								value={startDate}
 								className="w-full px-3 py-2 border rounded-md"
-								onChange={(e) => setDate(format(e.target.value, "yyyy-MM-dd"))}
+								onChange={(e) =>
+									setStartDate(format(e.target.value, "yyyy-MM-dd"))
+								}
 								required
 							/>
 						</Box>
@@ -94,17 +127,38 @@ export const EventPanelCrud = ({
 							<input
 								type="time"
 								name="startTime"
-								value={time}
+								value={startTime}
+								className="w-full px-3 py-2 border rounded-md"
+								onChange={(e) => setStartTime(e.target.value)}
+								required
+							/>
+						</Box>
+					</Flex>
+					<Flex gap="2">
+						<Box className="flex-1">
+							<Text size="2" className="mb-1">
+								End Date <small>(optional)</small>
+							</Text>
+							<input
+								type="date"
+								name="endDate"
+								value={endDate}
 								className="w-full px-3 py-2 border rounded-md"
 								onChange={(e) =>
-									setTime(
-										new Date(e.target.value)
-											.toISOString()
-											.split("T")[1]
-											.substring(0, 5),
-									)
+									setEndDate(format(e.target.value, "yyyy-MM-dd"))
 								}
-								required
+							/>
+						</Box>
+						<Box className="flex-1">
+							<Text size="2" className="mb-1">
+								End Time <small>(optional)</small>
+							</Text>
+							<input
+								type="time"
+								name="endTime"
+								value={endTime}
+								className="w-full px-3 py-2 border rounded-md"
+								onChange={(e) => setEndTime(e.target.value)}
 							/>
 						</Box>
 					</Flex>

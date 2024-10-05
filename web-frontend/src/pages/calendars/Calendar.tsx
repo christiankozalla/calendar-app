@@ -26,7 +26,7 @@ import {
 	Swipable,
 	swipingDirection,
 } from "@/components/Swipable";
-import { useRecoilState, useRecoilValue } from "recoil";
+import { useRecoilValue, useSetRecoilState } from "recoil";
 import { ColorsState } from "@/store/Colors";
 import { PersonsState } from "@/store/Persons";
 
@@ -56,7 +56,7 @@ export const Component = () => {
 
 	const [calendarFromBackend, setCalendar] = useState<CalendarsResponse>();
 	const [events, setEvents] = useState<EventsResponse[]>([]);
-	const [persons, setPersons] = useRecoilState(PersonsState);
+	const setPersons = useSetRecoilState(PersonsState);
 	const [loading, setLoading] = useState(true);
 	const colors = useRecoilValue(ColorsState);
 
@@ -65,7 +65,7 @@ export const Component = () => {
 	useEffect(() => {
 		if (calendarId) {
 			setLoading(true);
-			const calendarsRequest = pb.collection("calendars").getOne(calendarId);
+			const calendarRequest = pb.collection("calendars").getOne(calendarId);
 
 			const eventsRequest = pb
 				.collection("events")
@@ -82,9 +82,10 @@ export const Component = () => {
 					filter: pb.filter("calendar = {:calendarId}", { calendarId }),
 				});
 
-			Promise.allSettled([calendarsRequest, eventsRequest, personsRequest])
+			Promise.allSettled([calendarRequest, eventsRequest, personsRequest])
 				.then(([c, e, p]) => {
 					if (e.status === "fulfilled") {
+						console.log("events", e.value.items);
 						setEvents(e.value.items);
 					}
 					if (p.status === "fulfilled") {
@@ -142,16 +143,13 @@ export const Component = () => {
 		};
 	}, [calendarId]);
 
-	const openCreateNewEvent = useCallback(
-		(datetime: Date) => {
-			push({
-				state: { isOpen: true },
-				props: { startDatetime: datetime.toISOString(), persons },
-				component: EventPanelCrud,
-			});
-		},
-		[persons],
-	);
+	const openCreateNewEvent = useCallback((datetime: Date) => {
+		push({
+			state: { isOpen: true },
+			props: { startDatetime: datetime.toISOString(), calendar: calendarId },
+			component: EventPanelCrud,
+		});
+	}, [calendarId]);
 
 	const {
 		calendar,
@@ -172,9 +170,9 @@ export const Component = () => {
 	const onSwipe = (output: OnSwipeParams) => {
 		const directions = swipingDirection(output);
 		if (directions.includes(Direction.LEFT)) {
-			viewPreviousMonth();
-		} else if (directions.includes(Direction.RIGHT)) {
 			viewNextMonth();
+		} else if (directions.includes(Direction.RIGHT)) {
+			viewPreviousMonth();
 		}
 	};
 
@@ -235,16 +233,15 @@ export const Component = () => {
 						id: newEventSliderId.current,
 						state: { isOpen: true },
 						props: {
-							persons,
 							startDatetime: selected[0].toISOString(),
+							calendar: calendarId,
 						},
 					});
 				} else {
 					newEventSliderId.current = push({
 						state: { isOpen: true },
 						props: {
-							calendarId,
-							persons,
+							calendar: calendarId,
 							startDatetime: selected[0].toISOString(),
 						},
 						component: EventPanelCrud,
@@ -252,7 +249,7 @@ export const Component = () => {
 				}
 			}
 		}
-	}, [calendarId, selected, events, persons]);
+	}, [calendarId, selected, events]);
 	// ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 	// Needs to be refactored to be more readable and concise
 

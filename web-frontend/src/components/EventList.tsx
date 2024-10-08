@@ -66,7 +66,10 @@ export const EventList = ({
 								<Text
 									size="2"
 									className="text-gray-700"
-									dangerouslySetInnerHTML={{ __html: event.description }}
+									// biome-ignore lint: rich text content stored in the backend is escaped properly
+									dangerouslySetInnerHTML={{
+										__html: event.description,
+									}}
 								/>
 							</Box>
 						)}
@@ -76,3 +79,6 @@ export const EventList = ({
 		</Flex>
 	);
 };
+
+//  .replace(/</g, "&lt;")
+// .replace(/>/g, "&gt;"),

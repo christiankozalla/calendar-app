@@ -38,6 +38,9 @@ func main() {
 	app.OnRecordBeforeCreateRequest("invitations").Add(eventhandlers.OnBeforeCreateInvitation(app))
 	app.OnRecordAfterCreateRequest("users").Add(eventhandlers.OnAfterUsersCreateHandleInvitation(app))
 
+	app.OnRecordBeforeCreateRequest("events").Add(eventhandlers.SanitizeDescriptionOnCreate)
+	app.OnRecordBeforeUpdateRequest("events").Add(eventhandlers.SanitizeDescriptionOnUpdate)
+
 	// serves static files from the provided public dir (if exists)
 	app.OnBeforeServe().Add(func(e *core.ServeEvent) error {
 		e.Router.GET("/*", apis.StaticDirectoryHandler(os.DirFS("./pb_public"), indexFallback))

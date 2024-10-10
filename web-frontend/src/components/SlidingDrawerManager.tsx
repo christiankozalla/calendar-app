@@ -38,7 +38,12 @@ export const SlidingDrawerManager = () => {
 					}
 					{...slide.slots}
 				>
-					<slide.component {...slide.props} />
+					<slide.component
+						{...slide.props}
+						closeSlidingDrawer={() =>
+							update({ ...slide, state: { ...slide.state, isOpen: false } })
+						}
+					/>
 				</SlidingDrawer>
 			))}
 		</Swipable>

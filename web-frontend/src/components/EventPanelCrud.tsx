@@ -2,13 +2,25 @@ import { useEffect, useState, type FormEventHandler } from "react";
 import { useRecoilValue } from "recoil";
 import { pb } from "@/api/pocketbase";
 import type { EventsResponse, PersonsResponse } from "@/api/pocketbase-types";
-import { TextField, Button, Flex, Box, Text, TextArea } from "@radix-ui/themes";
+import type { Slide } from "@/store/SlidingDrawerState";
+import {
+	TextField,
+	Button,
+	Flex,
+	Box,
+	Text,
+	TextArea,
+	Strong,
+} from "@radix-ui/themes";
+import { AlertDialog } from "./AlertDialog";
 import { format } from "date-fns";
 import { MultiSelect } from "./Multiselect";
 import { PersonsState } from "@/store/Persons";
+import { TrashIcon } from "./svg/TrashIcon";
 
 type Props = {
 	persons: PersonsResponse[];
+	closeSlidingDrawer?: () => void;
 } & Pick<
 	EventsResponse,
 	"id" | "startDatetime" | "endDatetime" | "title" | "description" | "calendar"
@@ -52,6 +64,10 @@ const submit: FormEventHandler<HTMLFormElement> = async (event) => {
 	(event.target as HTMLFormElement).reset();
 };
 
+const deleteEvent = (id: string) => {
+	pb.collection("events").delete(id);
+};
+
 export const EventPanelCrud = ({
 	id,
 	calendar,
@@ -60,6 +76,7 @@ export const EventPanelCrud = ({
 	title,
 	description,
 	persons, // persons that are participating in the event
+	closeSlidingDrawer,
 }: Props) => {
 	const allPersons = useRecoilValue(PersonsState); // all existing persons in the backend for this user
 	const [startDate, setStartDate] = useState<string>("");
@@ -84,12 +101,34 @@ export const EventPanelCrud = ({
 
 	return (
 		<>
-			<Text size="4" weight="bold" mb="2" className="block">
-				{id ? "Update Event" : "Create New Event"}
-			</Text>
+			<Flex justify="between">
+				<Text size="4" weight="bold" mb="2" className="block">
+					{id ? "Update Event" : "Create New Event"}
+				</Text>
+				{id && (
+					<AlertDialog
+						triggerElement={
+							<Button radius="full" variant="soft">
+								<TrashIcon className="w-4 h-4" /> Delete
+							</Button>
+						}
+						title="Delete Event"
+						descriptionElement={
+							<Text>
+								Do you really want to delete this event?<br /><Strong>{title}</Strong>
+							</Text>
+						}
+						actionText="Delete"
+						action={() => {
+							deleteEvent(id);
+							if (closeSlidingDrawer) closeSlidingDrawer(); // bug/unwanted behavior: when an event is deleted, the sliding drawer stays open and displays a "Create New Event" panel (because the useEffect in Calendar.tsx runs again)
+						}}
+					/>
+				)}
+			</Flex>
 			<form
 				onSubmit={submit}
-				onReset={(e) => {
+				onReset={() => {
 					setStartTime("");
 					setStartDate("");
 					setEndTime("");

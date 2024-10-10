@@ -115,7 +115,9 @@ export const EventPanelCrud = ({
 						title="Delete Event"
 						descriptionElement={
 							<Text>
-								Do you really want to delete this event?<br /><Strong>{title}</Strong>
+								Do you really want to delete this event?
+								<br />
+								<Strong>{title}</Strong>
 							</Text>
 						}
 						actionText="Delete"

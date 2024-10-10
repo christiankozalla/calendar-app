@@ -29,7 +29,7 @@ export const EventList = ({
 									})
 								}
 							>
-								<PencilIcon className="w-4 h-4 text-gray-500" />
+								<PencilIcon className="w-4 h-4" />
 								Edit
 							</Button>
 						</Flex>

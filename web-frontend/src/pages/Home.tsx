@@ -1,13 +1,5 @@
-import { useEffect, useState, type FormEventHandler } from "react";
-import {
-	Box,
-	Container,
-	Text,
-	TextField,
-	Button,
-	Heading,
-	Select,
-} from "@radix-ui/themes";
+import { useEffect, useState } from "react";
+import { Box, Container, Text, Heading } from "@radix-ui/themes";
 import { pb } from "@/api/pocketbase";
 import {
 	type CalendarsResponse,
@@ -17,9 +9,6 @@ import {
 import { Link } from "react-router-dom";
 import { formatEventDate } from "@/utils/dateFormatting";
 import { CreateInvitationPanel } from "@/components/CreateInvitationPanel";
-// List next events
-
-// show calendar for manipulation
 
 const CalendarItem = ({
 	calendar,
@@ -38,7 +27,7 @@ const CalendarItem = ({
 						<li key={event.id} className="px-4 py-3">
 							<p className="font-medium">{event.title}</p>
 							<p className="text-sm text-gray-600">
-								{formatEventDate(event.datetime)}
+								{formatEventDate(event.startDatetime)}
 							</p>
 						</li>
 					))
@@ -59,7 +48,7 @@ const CalendarList = ({
 		const calendarIds = calendars?.map((c) => c.id);
 		if (calendarIds) {
 			const filter = pb.filter(
-				`calendar = '${calendarIds?.join("' || calendar = ")}' && datetime > {:now}`,
+				`calendar = '${calendarIds?.join("' || calendar = ")}' && startDatetime > {:now}`,
 				{ now: new Date() },
 			);
 			pb.collection(Collections.Events)
@@ -90,7 +79,7 @@ export const Component = () => {
 	const [calendars, setCalendars] = useState<CalendarsResponse[]>([]);
 
 	useEffect(() => {
-		pb.collection("calendars")
+		pb.collection(Collections.Calendars)
 			.getFullList({
 				filter: pb.filter("users ~ {:userId}", {
 					userId: pb.authStore.model?.id,
@@ -102,7 +91,7 @@ export const Component = () => {
 	}, []);
 
 	return (
-		<Container>
+		<Container className="p-2">
 			<Heading as="h1" size="7" className="mb-4">
 				Welcome {pb.authStore.model?.name ?? "friend"}!
 			</Heading>

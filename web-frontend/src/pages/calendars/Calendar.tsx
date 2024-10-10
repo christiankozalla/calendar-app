@@ -200,7 +200,7 @@ export const Component = () => {
 	// Needs to be refactored to be more readable and concise
 	const eventListId = useRef<string>();
 	const newEventSliderId = useRef<string>();
-	// biome-ignore lint: other dependencies are stateless
+	// biome-ignore lint: other dependencies are stateless, or in case of "events": this effect does not subscribe to updates in "events" state
 	useEffect(() => {
 		if (selected.length > 0) {
 			const eventsForSelectedDay = findEventsForDay(events, selected[0]);
@@ -267,7 +267,7 @@ export const Component = () => {
 				}
 			}
 		}
-	}, [calendarId, selected, events]);
+	}, [calendarId, selected]);
 	// ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 	// Needs to be refactored to be more readable and concise
 

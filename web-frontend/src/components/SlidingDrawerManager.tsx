@@ -8,12 +8,14 @@ import {
 	Swipable,
 	swipingDirection,
 } from "./Swipable";
+import { useCallback } from "react";
 
 export const SlidingDrawerManager = () => {
 	const state = useRecoilValue(SlidingDrawerState);
 	const { update } = useSlidingDrawer();
 
-	const onSwipe = (directions: OnSwipeParams) => {
+	// biome-ignore lint: update function is stateless
+	const onSwipe = useCallback((directions: OnSwipeParams) => {
 		const swipingDirections = swipingDirection(directions);
 		if (swipingDirections.includes(Direction.DOWN)) {
 			for (const slide of state) {
@@ -23,7 +25,13 @@ export const SlidingDrawerManager = () => {
 			const slide = state[state.length - 1];
 			update({ ...slide, state: { ...slide.state, isOpen: true } });
 		}
-	};
+	}, []);
+	// biome-ignore lint: update function is stateless
+	const closeAll = useCallback(() => {
+		for (const slide of state) {
+			update({ ...slide, state: { ...slide.state, isOpen: false } });
+		}
+	}, [state]);
 
 	return (
 		<Swipable global onSwipe={onSwipe}>
@@ -43,6 +51,7 @@ export const SlidingDrawerManager = () => {
 						closeSlidingDrawer={() =>
 							update({ ...slide, state: { ...slide.state, isOpen: false } })
 						}
+						closeAll={closeAll}
 					/>
 				</SlidingDrawer>
 			))}

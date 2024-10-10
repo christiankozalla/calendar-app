@@ -2,7 +2,6 @@ import { useEffect, useState, type FormEventHandler } from "react";
 import { useRecoilValue } from "recoil";
 import { pb } from "@/api/pocketbase";
 import type { EventsResponse, PersonsResponse } from "@/api/pocketbase-types";
-import type { Slide } from "@/store/SlidingDrawerState";
 import {
 	TextField,
 	Button,
@@ -21,6 +20,7 @@ import { TrashIcon } from "./svg/TrashIcon";
 type Props = {
 	persons: PersonsResponse[];
 	closeSlidingDrawer?: () => void;
+	closeAll?: () => void;
 } & Pick<
 	EventsResponse,
 	"id" | "startDatetime" | "endDatetime" | "title" | "description" | "calendar"
@@ -77,6 +77,7 @@ export const EventPanelCrud = ({
 	description,
 	persons, // persons that are participating in the event
 	closeSlidingDrawer,
+	closeAll,
 }: Props) => {
 	const allPersons = useRecoilValue(PersonsState); // all existing persons in the backend for this user
 	const [startDate, setStartDate] = useState<string>("");
@@ -123,7 +124,7 @@ export const EventPanelCrud = ({
 						actionText="Delete"
 						action={() => {
 							deleteEvent(id);
-							if (closeSlidingDrawer) closeSlidingDrawer(); // bug/unwanted behavior: when an event is deleted, the sliding drawer stays open and displays a "Create New Event" panel (because the useEffect in Calendar.tsx runs again)
+							if (closeAll) closeAll(); // bug/unwanted behavior: when an event is deleted, the sliding drawer stays open and displays a "Create New Event" panel (because the useEffect in Calendar.tsx runs again)
 						}}
 					/>
 				)}

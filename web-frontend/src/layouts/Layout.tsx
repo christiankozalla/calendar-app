@@ -9,6 +9,7 @@ import type { ColorsRecord } from "@/api/pocketbase-types";
 export const Layout = () => {
 	const setColors = useSetRecoilState(ColorsState);
 
+	// biome-ignore lint: this effect shall only run on first render
 	useEffect(() => {
 		(async () => {
 			const colorsResponse = await pb.collection("colors").getFullList();

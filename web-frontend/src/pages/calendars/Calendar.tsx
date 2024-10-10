@@ -113,7 +113,7 @@ export const Component = () => {
 					}, 200); // dirty hack because: even though a calendarFromBackend was set before setLoading to false, the part "No calendar for this ID {calendarId}" is still shown (and shouldn't be!)
 				});
 		}
-	}, [calendarId]);
+	}, [calendarId, setPersons]);
 
 	useEffect(() => {
 		pb.collection("events").subscribe<
@@ -156,6 +156,7 @@ export const Component = () => {
 		};
 	}, [calendarId]);
 
+	// biome-ignore lint: push dependency is stateless
 	const openCreateNewEvent = useCallback(
 		(datetime: Date) => {
 			push({
@@ -199,6 +200,7 @@ export const Component = () => {
 	// Needs to be refactored to be more readable and concise
 	const eventListId = useRef<string>();
 	const newEventSliderId = useRef<string>();
+	// biome-ignore lint: other dependencies are stateless
 	useEffect(() => {
 		if (selected.length > 0) {
 			const eventsForSelectedDay = findEventsForDay(events, selected[0]);
@@ -286,7 +288,7 @@ export const Component = () => {
 			<Header>
 				<Heading size="3">{calendarFromBackend?.name}</Heading>
 			</Header>
-			<Box>
+			<Box className="mb-16">
 				<Flex justify="between" align="center" className="mx-2 my-2">
 					<IconButton
 						onClick={viewPreviousMonth}

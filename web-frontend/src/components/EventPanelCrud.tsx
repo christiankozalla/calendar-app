@@ -10,12 +10,15 @@ import {
 	Text,
 	TextArea,
 	Strong,
+	Select,
 } from "@radix-ui/themes";
 import { AlertDialog } from "./AlertDialog";
 import { format } from "date-fns";
 import { MultiSelect } from "./Multiselect";
 import { PersonsState } from "@/store/Persons";
 import { TrashIcon } from "./svg/TrashIcon";
+import { ColorsState } from "@/store/Colors";
+import { ColorPicker } from "./ColorPicker";
 
 type Props = {
 	persons: PersonsResponse[];
@@ -84,6 +87,7 @@ export const EventPanelCrud = ({
 	const [startTime, setStartTime] = useState<string>("");
 	const [endDate, setEndDate] = useState<string>("");
 	const [endTime, setEndTime] = useState<string>("");
+	const colors = useRecoilValue(ColorsState);
 
 	useEffect(() => {
 		const newDate = startDatetime ? format(startDatetime, "yyyy-MM-dd") : "";
@@ -222,6 +226,8 @@ export const EventPanelCrud = ({
 							options={allPersons}
 						/>
 					</Box>
+
+					<ColorPicker colors={colors} fieldName="color" />
 
 					<input type="hidden" name="calendar" value={calendar} />
 					{id && <input type="hidden" name="id" value={id} />}

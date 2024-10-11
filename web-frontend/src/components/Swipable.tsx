@@ -26,7 +26,7 @@ export type OnSwipeParams = {
 export const Swipable = ({
 	children,
 	onSwipe,
-	className,
+	className = "",
 	global = false,
 }: Props) => {
 	const wrapperRef = useRef<HTMLDivElement>(null);
@@ -73,7 +73,7 @@ export const Swipable = ({
 				deltaY,
 			});
 		},
-		[startX, startY, onSwipe, global],
+		[onSwipe, global],
 	);
 
 	useEffect(() => {
@@ -87,7 +87,7 @@ export const Swipable = ({
 	}, [handleTouchStart, handleTouchEnd]);
 
 	return (
-		<div className={className || ""} ref={wrapperRef}>
+		<div className={className} ref={wrapperRef}>
 			{children}
 		</div>
 	);

@@ -7,29 +7,29 @@ import type { Colors } from "@/store/Colors";
 type Props = {
 	colors: Colors;
 	fieldName: string;
+	initialSelected?: string;
 };
 
-export const ColorPicker = ({ colors, fieldName }: Props) => {
+export const ColorPicker = ({ colors, fieldName, initialSelected }: Props) => {
 	const [open, setOpen] = useState(false);
-	const [selected, setSelected] = useState<[string, ColorsRecord] | null>(null);
+	const [selected, setSelected] = useState<[string, ColorsRecord] | undefined>(
+		initialSelected ? [initialSelected, colors[initialSelected]] : undefined,
+	);
 
 	return (
 		<div>
 			<input type="hidden" name={fieldName} value={selected?.[0] || ""} />
 			<DropdownMenu.Root open={open} onOpenChange={setOpen}>
 				<DropdownMenu.Trigger>
-					<Button
-						variant="soft"
-						size="2"
-					>
+					<Button variant="soft" size="2">
 						{selected ? (
-                            <>
+							<>
 								<div
 									className="w-6 h-6 rounded-full"
 									style={{ backgroundColor: selected[1].hex }}
 								/>
 								{selected[1].name}
-                                </>
+							</>
 						) : (
 							"Colors"
 						)}

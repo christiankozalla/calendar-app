@@ -26,7 +26,13 @@ type Props = {
 	closeAll?: () => void;
 } & Pick<
 	EventsResponse,
-	"id" | "startDatetime" | "endDatetime" | "title" | "description" | "calendar"
+	| "id"
+	| "startDatetime"
+	| "endDatetime"
+	| "title"
+	| "description"
+	| "calendar"
+	| "color"
 >;
 
 const setDateTimes = (formData: FormData) => {
@@ -78,6 +84,7 @@ export const EventPanelCrud = ({
 	endDatetime,
 	title,
 	description,
+	color,
 	persons, // persons that are participating in the event
 	closeSlidingDrawer,
 	closeAll,
@@ -227,7 +234,11 @@ export const EventPanelCrud = ({
 						/>
 					</Box>
 
-					<ColorPicker colors={colors} fieldName="color" />
+					<ColorPicker
+						colors={colors}
+						fieldName="color"
+						initialSelected={color}
+					/>
 
 					<input type="hidden" name="calendar" value={calendar} />
 					{id && <input type="hidden" name="id" value={id} />}

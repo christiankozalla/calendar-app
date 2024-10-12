@@ -227,7 +227,7 @@ export const EventPanelCrud = ({
 
 					<Box>
 						<Flex gap="2" className="w-full">
-							<div className="w-2/3">
+							<div className="w-1/2">
 								<Text size="2" className="mb-1">
 									Participants
 								</Text>
@@ -238,7 +238,7 @@ export const EventPanelCrud = ({
 									options={allPersons}
 								/>
 							</div>
-							<div className="w-1/3">
+							<div className="w-1/2">
 								<Text size="2" className="mb-1">
 									Color
 								</Text>

@@ -141,7 +141,10 @@ export const EventPanelCrud = ({
 				)}
 			</Flex>
 			<form
-				onSubmit={submit}
+				onSubmit={(e) => {
+					submit(e);
+					if (closeSlidingDrawer) closeSlidingDrawer();
+				}}
 				onReset={() => {
 					setStartTime("");
 					setStartDate("");

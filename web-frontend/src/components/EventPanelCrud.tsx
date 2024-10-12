@@ -135,7 +135,7 @@ export const EventPanelCrud = ({
 						actionText="Delete"
 						action={() => {
 							deleteEvent(id);
-							if (closeAll) closeAll(); // bug/unwanted behavior: when an event is deleted, the sliding drawer stays open and displays a "Create New Event" panel (because the useEffect in Calendar.tsx runs again)
+							if (closeAll) closeAll();
 						}}
 					/>
 				)}

@@ -51,7 +51,7 @@ export type ColorsRecord = {
 };
 
 export type EventsRecord = {
-	calendar?: RecordIdString;
+	calendar: RecordIdString;
 	color?: RecordIdString;
 	description?: HTMLString;
 	endDatetime?: IsoDateString;

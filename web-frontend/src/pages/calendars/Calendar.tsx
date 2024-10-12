@@ -9,6 +9,7 @@ import { useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { Day, useLilius } from "use-lilius";
 import { isSameDay, startOfMonth, endOfMonth, isToday, format } from "date-fns";
+import { inRange } from "@/utils/date";
 import {
 	Box,
 	Heading,
@@ -53,7 +54,12 @@ const MONTHS = [
 const findEventsForDay = (
 	events: EventsResponse[],
 	day: Date,
-): EventsResponse[] => events?.filter((e) => isSameDay(e.startDatetime, day));
+): EventsResponse[] =>
+	events?.filter((e) =>
+		!e.endDatetime
+			? isSameDay(day, e.startDatetime)
+			: inRange(day, new Date(e.startDatetime), new Date(e.endDatetime)),
+	);
 
 export const Component = () => {
 	const calendarId = useParams().calendarId;
@@ -172,7 +178,6 @@ export const Component = () => {
 		calendar,
 		selected,
 		isSelected,
-		inRange,
 		// toggle,
 		select,
 		viewing,
@@ -358,6 +363,9 @@ export const Component = () => {
 									startOfMonth(viewing),
 									endOfMonth(viewing),
 								);
+								if (eventsOfThisDay.length) {
+									console.log(eventsOfThisDay);
+								}
 
 								return (
 									<div
@@ -394,14 +402,14 @@ export const Component = () => {
 												{eventsOfThisDay?.map((event) => (
 													<div key={event.id} className="text-xs mb-1 truncate">
 														<div
-															className={cx("h-1", "w-full", "mb-1")}
+															className="h-1 w-full mb-1"
 															style={{
-																backgroundColor: event.color
-																	? colors[event.color].hex
-																	: "blue",
+																backgroundColor:
+																	colors[event.color]?.hex ?? "blue",
 															}}
 														/>
-														{event.title}
+														{isSameDay(day, new Date(event.startDatetime)) &&
+															event.title}
 													</div>
 												))}
 											</div>

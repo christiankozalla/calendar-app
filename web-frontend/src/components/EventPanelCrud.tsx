@@ -223,22 +223,30 @@ export const EventPanelCrud = ({
 					/>
 
 					<Box>
-						<Text size="2" className="mb-1">
-							Participants
-						</Text>
-						<MultiSelect
-							formfieldName="persons"
-							placeholder="Select participating persons"
-							initiallySelected={persons}
-							options={allPersons}
-						/>
+						<Flex gap="2" className="w-full">
+							<div className="w-2/3">
+								<Text size="2" className="mb-1">
+									Participants
+								</Text>
+								<MultiSelect
+									formfieldName="persons"
+									placeholder="Select participating persons"
+									initiallySelected={persons}
+									options={allPersons}
+								/>
+							</div>
+							<div className="w-1/3">
+								<Text size="2" className="mb-1">
+									Color
+								</Text>
+								<ColorPicker
+									colors={colors}
+									fieldName="color"
+									initialSelected={color}
+								/>
+							</div>
+						</Flex>
 					</Box>
-
-					<ColorPicker
-						colors={colors}
-						fieldName="color"
-						initialSelected={color}
-					/>
 
 					<input type="hidden" name="calendar" value={calendar} />
 					{id && <input type="hidden" name="id" value={id} />}

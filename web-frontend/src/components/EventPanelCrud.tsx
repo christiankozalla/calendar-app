@@ -39,20 +39,24 @@ const setDateTimes = (formData: FormData) => {
 	const startDate = formData.get("startDate");
 	const startTime = formData.get("startTime");
 
-	if (startDate && startTime) {
-		const [hours, minutes] = (startTime as string).split(":");
+	if (startDate) {
 		const datetime = new Date(startDate as string);
-		datetime.setHours(Number(hours));
-		datetime.setMinutes(Number(minutes));
+		if (startTime) {
+			const [hours, minutes] = (startTime as string).split(":");
+			datetime.setHours(Number(hours));
+			datetime.setMinutes(Number(minutes));
+		}
 		formData.set("startDatetime", datetime.toISOString());
 	}
 	const endDate = formData.get("endDate");
 	const endTime = formData.get("endTime");
-	if (endDate && endTime) {
-		const [hours, minutes] = (endTime as string).split(":");
+	if (endDate) {
 		const datetime = new Date(endDate as string);
-		datetime.setHours(Number(hours));
-		datetime.setMinutes(Number(minutes));
+		if (endTime) {
+			const [hours, minutes] = (endTime as string).split(":");
+			datetime.setHours(Number(hours));
+			datetime.setMinutes(Number(minutes));
+		}
 		formData.set("endDatetime", datetime.toISOString());
 	}
 };

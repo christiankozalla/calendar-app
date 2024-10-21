@@ -64,6 +64,11 @@ export const Swipable = ({
 			const deltaX = endX - startX.current;
 			const deltaY = endY - startY.current;
 
+			// Prevent default scroll if the swipe is likely
+			if (Math.abs(deltaX) > 30 || Math.abs(deltaY) > 30) {
+				e.preventDefault();
+			}
+
 			onSwipe({
 				startX: startX.current,
 				startY: startY.current,
@@ -77,8 +82,8 @@ export const Swipable = ({
 	);
 
 	useEffect(() => {
-		window.addEventListener("touchstart", handleTouchStart, { passive: true });
-		window.addEventListener("touchend", handleTouchEnd, { passive: true });
+		window.addEventListener("touchstart", handleTouchStart, { passive: false });
+		window.addEventListener("touchend", handleTouchEnd, { passive: false });
 
 		return () => {
 			window.removeEventListener("touchstart", handleTouchStart);

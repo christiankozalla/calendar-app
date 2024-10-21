@@ -58,7 +58,7 @@ export const Component = () => {
 		if (isAuthenticated) {
 			navigate("/");
 		}
-	}, [isAuthenticated]);
+	}, [isAuthenticated, navigate]);
 
 	const [searchParams] = useSearchParams();
 	const inviteToken = searchParams.get("token");
@@ -83,7 +83,7 @@ export const Component = () => {
 				inviterName: parsed.body.inviterName,
 			});
 		}
-	}, []);
+	}, [inviteToken]);
 
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();

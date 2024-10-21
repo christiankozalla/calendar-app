@@ -34,6 +34,7 @@ import {
 import { useRecoilValue, useSetRecoilState } from "recoil";
 import { ColorsState } from "@/store/Colors";
 import { PersonsState } from "@/store/Persons";
+import { getTextColorBasedOnBg } from "@/utils/color";
 
 const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 const MONTHS = [
@@ -65,6 +66,7 @@ export const Component = () => {
 	const calendarId = useParams().calendarId;
 
 	const [calendarFromBackend, setCalendar] = useState<CalendarsResponse>();
+	// This state should be global
 	const [events, setEvents] = useState<
 		EventsResponse<{ persons: PersonsResponse[] }>[]
 	>([]);
@@ -127,7 +129,6 @@ export const Component = () => {
 		>(
 			"*",
 			(collection) => {
-				console.log("realtime events update", collection);
 				switch (collection.action) {
 					case "create":
 						setEvents((events) => [...(events ?? []), collection.record]);
@@ -293,7 +294,7 @@ export const Component = () => {
 			<Header>
 				<Heading size="3">{calendarFromBackend?.name}</Heading>
 			</Header>
-			<Box className="mb-16">
+			<Box className="h-[calc(100vh-100px)]">
 				<Flex justify="between" align="center" className="mx-2 my-2">
 					<IconButton
 						onClick={viewPreviousMonth}
@@ -363,9 +364,6 @@ export const Component = () => {
 									startOfMonth(viewing),
 									endOfMonth(viewing),
 								);
-								if (eventsOfThisDay.length) {
-									console.log(eventsOfThisDay);
-								}
 
 								return (
 									<div
@@ -400,16 +398,27 @@ export const Component = () => {
 											</Text>
 											<div className="w-full grow">
 												{eventsOfThisDay?.map((event) => (
-													<div key={event.id} className="text-xs mb-1 truncate">
-														<div
-															className="h-1 w-full mb-1"
-															style={{
-																backgroundColor:
-																	colors[event.color]?.hex ?? "blue",
-															}}
-														/>
-														{isSameDay(day, new Date(event.startDatetime)) &&
-															event.title}
+													<div
+														key={event.id}
+														className="h-[16px] w-full mb-1 truncate"
+														style={{
+															backgroundColor:
+																colors[event.color]?.hex ?? "#0000FF",
+															color: getTextColorBasedOnBg(
+																colors[event.color]?.hex ?? "#0000FF",
+															),
+														}}
+													>
+														{isSameDay(day, new Date(event.startDatetime)) && (
+															<Text
+																size="1"
+																weight="bold"
+																trim="both"
+																className="align-middle"
+															>
+																{event.title}
+															</Text>
+														)}
 													</div>
 												))}
 											</div>

@@ -21,7 +21,7 @@ export const AuthenticationGuard = ({
 		}, true);
 
 		return unsubsribeFromAuthStoreChanges;
-	}, []);
+	}, [setIsAuthenticated]);
 
 	if (!isAuthenticated) {
 		return <Navigate to={redirectPath} replace />;

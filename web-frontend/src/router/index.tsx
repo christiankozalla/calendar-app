@@ -26,8 +26,8 @@ export const router = createBrowserRouter([
 								lazy: () => import("../pages/calendars/Calendar.tsx"),
 							},
 							{
-								path: "chat-notes",
-								lazy: () => import("../pages/calendars/ChatNotes.tsx"),
+								path: "chat",
+								lazy: () => import("../pages/calendars/Chat.tsx"),
 							},
 							{
 								path: "activity",

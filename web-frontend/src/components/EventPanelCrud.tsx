@@ -10,7 +10,7 @@ import {
 	Text,
 	TextArea,
 	Strong,
-	Select,
+	Separator,
 } from "@radix-ui/themes";
 import { AlertDialog } from "./AlertDialog";
 import { format } from "date-fns";
@@ -19,6 +19,7 @@ import { PersonsState } from "@/store/Persons";
 import { TrashIcon } from "./svg/TrashIcon";
 import { ColorsState } from "@/store/Colors";
 import { ColorPicker } from "./ColorPicker";
+import { CreatePerson } from "./CreatePerson";
 
 type Props = {
 	persons: PersonsResponse[];
@@ -165,59 +166,85 @@ export const EventPanelCrud = ({
 					/>
 
 					<Flex gap="2">
-						<Box className="flex-1">
-							<Text size="2" className="mb-1">
+						<Box className="w-2/3">
+							<Text
+								size="2"
+								className="block mb-1"
+								as="label"
+								htmlFor="startDate"
+							>
 								Start Date
 							</Text>
 							<input
 								type="date"
+								id="startDate"
 								name="startDate"
 								value={startDate}
-								className="w-full px-3 py-2 border rounded-md"
+								className="block w-full px-3 py-2 border rounded-md border-gray-200 bg-white appearance-none"
 								onChange={(e) =>
 									setStartDate(format(e.target.value, "yyyy-MM-dd"))
 								}
 								required
 							/>
 						</Box>
-						<Box className="flex-1">
-							<Text size="2" className="mb-1">
-								Time
+						<Box className="w-1/3">
+							<Text
+								size="2"
+								className="block mb-1"
+								as="label"
+								htmlFor="startTime"
+								truncate
+							>
+								Start Time <small>(optional)</small>
 							</Text>
 							<input
 								type="time"
+								id="startTime"
 								name="startTime"
 								value={startTime}
-								className="w-full px-3 py-2 border rounded-md"
+								className="block w-full px-3 py-2 border rounded-md border-gray-200 bg-white appearance-none"
 								onChange={(e) => setStartTime(e.target.value)}
-								required
 							/>
 						</Box>
 					</Flex>
 					<Flex gap="2">
-						<Box className="flex-1">
-							<Text size="2" className="mb-1">
+						<Box className="w-2/3">
+							<Text
+								size="2"
+								className="block mb-1"
+								as="label"
+								htmlFor="endDate"
+							>
 								End Date <small>(optional)</small>
 							</Text>
 							<input
 								type="date"
+								id="endDate"
 								name="endDate"
 								value={endDate}
-								className="w-full px-3 py-2 border rounded-md"
+								min={startDate}
+								className="block w-full px-3 py-2 border rounded-md border-gray-200 bg-white appearance-none"
 								onChange={(e) =>
 									setEndDate(format(e.target.value, "yyyy-MM-dd"))
 								}
 							/>
 						</Box>
-						<Box className="flex-1">
-							<Text size="2" className="mb-1">
+						<Box className="w-1/3">
+							<Text
+								size="2"
+								className="block mb-1"
+								as="label"
+								htmlFor="endTime"
+								truncate
+							>
 								End Time <small>(optional)</small>
 							</Text>
 							<input
 								type="time"
+								id="endTime"
 								name="endTime"
 								value={endTime}
-								className="w-full px-3 py-2 border rounded-md"
+								className="block w-full px-3 py-2 border rounded-md border-gray-200 bg-white appearance-none"
 								onChange={(e) => setEndTime(e.target.value)}
 							/>
 						</Box>
@@ -231,27 +258,22 @@ export const EventPanelCrud = ({
 
 					<Box>
 						<Flex gap="2" className="w-full">
-							<div className="w-1/2">
-								<Text size="2" className="mb-1">
-									Participants
-								</Text>
-								<MultiSelect
-									formfieldName="persons"
-									placeholder="Select participating persons"
-									initiallySelected={persons}
-									options={allPersons}
-								/>
-							</div>
-							<div className="w-1/2">
-								<Text size="2" className="mb-1">
-									Color
-								</Text>
-								<ColorPicker
-									colors={colors}
-									fieldName="color"
-									initialSelected={color}
-								/>
-							</div>
+							<MultiSelect
+								className="flex-none w-1/2"
+								formfieldName="persons"
+								placeholder="People"
+								initiallySelected={persons}
+								options={allPersons}
+							>
+								<Separator my="3" size="4" />
+								<CreatePerson calendar={calendar} />
+							</MultiSelect>
+							<ColorPicker
+								className="flex-none w-1/2"
+								colors={colors}
+								fieldName="color"
+								initialSelected={color}
+							/>
 						</Flex>
 					</Box>
 

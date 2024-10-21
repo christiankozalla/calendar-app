@@ -8,20 +8,30 @@ type Props = {
 	colors: Colors;
 	fieldName: string;
 	initialSelected?: string;
+	className?: string;
 };
 
-export const ColorPicker = ({ colors, fieldName, initialSelected }: Props) => {
+export const ColorPicker = ({
+	colors,
+	fieldName,
+	initialSelected,
+	className = "",
+}: Props) => {
 	const [open, setOpen] = useState(false);
 	const [selected, setSelected] = useState<[string, ColorsRecord] | undefined>(
 		initialSelected ? [initialSelected, colors[initialSelected]] : undefined,
 	);
 
 	return (
-		<div>
+		<div className={className}>
 			<input type="hidden" name={fieldName} value={selected?.[0] || ""} />
 			<DropdownMenu.Root open={open} onOpenChange={setOpen}>
 				<DropdownMenu.Trigger>
-					<Button variant="soft" size="2">
+					<Button
+						variant="soft"
+						size="2"
+						className="w-full flex justify-between"
+					>
 						{selected ? (
 							<>
 								<div

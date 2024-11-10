@@ -1,10 +1,5 @@
 import type { UsersResponse } from "@/api/pocketbase-types";
-import {
-	View,
-	Text,
-	TextInput,
-	StyleSheet,
-} from "react-native";
+import { View, Text, StyleSheet } from "react-native";
 import { useState } from "react";
 import { pb } from "@/api/pocketbase";
 import { Collections, type CalendarsResponse } from "@/api/pocketbase-types";
@@ -12,10 +7,17 @@ import { useSetRecoilState } from "recoil";
 import { CalendarsState } from "@/store/Calendars";
 import Button from "react-native-ui-lib/button";
 import { updateCalendarState } from "@/utils/calendar";
+import { BottomSheetTextInput } from "@gorhom/bottom-sheet";
+import { generateUUID } from "@/utils/uuid";
 
-export const CreateCalendarPanel = ({
-	closeSlidingDrawer,
-}: { closeSlidingDrawer?: () => void }) => {
+type Props = {
+	onSuccess: ReturnType<typeof Promise.withResolvers<Response>>["resolve"];
+	onFailure: ReturnType<typeof Promise.withResolvers<Response>>["reject"];
+};
+type Response = CalendarsResponse<{ users: UsersResponse[] }>;
+
+export const CreateCalendarPanel = ({ onSuccess, onFailure }: Props) => {
+	const [id] = useState(generateUUID());
 	const [name, setName] = useState("");
 	const setCalendars = useSetRecoilState(CalendarsState);
 
@@ -25,8 +27,9 @@ export const CreateCalendarPanel = ({
 		try {
 			const newCalendar = await pb
 				.collection(Collections.Calendars)
-				.create<CalendarsResponse<{ users: UsersResponse[] }>>(
+				.create<Response>(
 					{
+						id,
 						name,
 						owner: pb.authStore.model?.id,
 						users: [pb.authStore.model?.id],
@@ -38,17 +41,17 @@ export const CreateCalendarPanel = ({
 
 			setCalendars((prev) => updateCalendarState(prev, newCalendar));
 			setName("");
+			onSuccess(newCalendar);
 		} catch (err) {
 			console.error(err);
-		} finally {
-			closeSlidingDrawer?.();
+			onFailure(err);
 		}
 	};
 
 	return (
 		<View style={styles.container}>
 			<Text style={styles.title}>Create Calendar</Text>
-			<TextInput
+			<BottomSheetTextInput
 				style={styles.input}
 				value={name}
 				onChangeText={setName}
@@ -67,8 +70,8 @@ export const CreateCalendarPanel = ({
 
 const styles = StyleSheet.create({
 	container: {
-		padding: 16,
 		gap: 16,
+		paddingBottom: 16,
 	},
 	title: {
 		fontSize: 20,

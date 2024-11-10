@@ -1,5 +1,4 @@
 import { View, StyleSheet, type ViewStyle } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 type HeaderProps = {
 	children: React.ReactNode;
@@ -7,10 +6,8 @@ type HeaderProps = {
 };
 
 export const Header = ({ children, style }: HeaderProps) => {
-	const insets = useSafeAreaInsets();
-
 	return (
-		<View style={[styles.header, { paddingTop: insets.top }, style]}>
+		<View style={[styles.header, style]}>
 			{children}
 		</View>
 	);
@@ -23,8 +20,7 @@ const styles = StyleSheet.create({
 		borderBottomColor: "#e5e7eb",
 		height: "auto",
 		minHeight: 50,
-		paddingHorizontal: 16,
-		paddingBottom: 8,
+		paddingHorizontal: 8,
 		flexDirection: "row",
 		alignItems: "center",
 		justifyContent: "space-between",

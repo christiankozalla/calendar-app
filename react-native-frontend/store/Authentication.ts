@@ -3,24 +3,21 @@ import { atom, type AtomEffect } from "recoil";
 import { pb } from "@/api/pocketbase";
 
 const getAuthStateFromPocketBaseSDK: AtomEffect<boolean> = ({
-	node,
 	trigger,
 	setSelf,
 }) => {
 	if (trigger === "get") {
-		setSelf(pb.authStore.isValid);
-	} else if (trigger === "set") {
-		console.log(`Recoil store ${node.key} has been modified`);
+		if (pb.authStore.isValid) {
+			pb.collection("users").authRefresh();
+			setSelf(true);
+		} else {
+			pb.authStore.clear();
+			setSelf(false);
+		}
 	}
-
-	const unsubscribe = pb.authStore.onChange((token) => {
-		setSelf(Boolean(token));
-	});
-
-	return unsubscribe;
 };
 
-export const authenticatedState = atom({
+export const AuthState = atom({
 	key: "UserAuthentication",
 	default: false,
 	effects: [getAuthStateFromPocketBaseSDK],

@@ -4,7 +4,7 @@ import { useRouter, useGlobalSearchParams } from 'expo-router';
 import { pb } from "@/api/pocketbase";
 import { ClientResponseError, type RecordOptions } from "pocketbase";
 import { useRecoilValue } from "recoil";
-import { authenticatedState } from "@/store/Authentication";
+import { AuthState } from "@/store/Authentication";
 import { type JwtBaseClaims, parse } from "@/utils/jwt";
 
 
@@ -36,7 +36,7 @@ const signupUser = async (data: SignupData, options?: RecordOptions) => {
 export default function LoginSignup() {
   const router = useRouter();
   const { token: inviteToken } = useGlobalSearchParams<{ token?: string }>();
-  const isAuthenticated = useRecoilValue(authenticatedState);
+  const isAuthenticated = useRecoilValue(AuthState);
 
   const [activeTab, setActiveTab] = useState('login');
   const [email, setEmail] = useState('');

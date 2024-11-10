@@ -1,19 +1,17 @@
 import { useCallback, useState } from "react";
-import {
-	View,
-	Text,
-	TextInput,
-	StyleSheet,
-} from "react-native";
+import { View, Text, StyleSheet } from "react-native";
+import { createURL } from "expo-linking";
 import type { CalendarsResponse, UsersResponse } from "@/api/pocketbase-types";
 import { pb } from "@/api/pocketbase";
 import { CopyableText } from "./CopyableText";
 import Button from "react-native-ui-lib/button";
+import { BottomSheetTextInput } from "@gorhom/bottom-sheet";
 
 type Props = {
 	calendar: CalendarsResponse<{ users: UsersResponse[] }>;
 };
 
+// TODO: Re-design this component to allow MULTI user invite
 export const CreateInvitationPanel = ({ calendar }: Props) => {
 	const [invitationLink, setInvitationLink] = useState<string>();
 	const [inviteeEmail, setInviteeEmail] = useState("");
@@ -31,20 +29,23 @@ export const CreateInvitationPanel = ({ calendar }: Props) => {
 
 			const response = await pb.collection("invitations").create(data);
 
-			const newInvitationLink = `${location.origin}/login-signup?token=${response.token}`;
+			// const newInvitationLink = `${location.origin}/login-signup?token=${response.token}`;
+			const newInvitationLink = createURL("login-signup", {
+				queryParams: { token: response.token },
+			});
 			setInvitationLink(newInvitationLink);
 		} catch (err) {
 			console.warn("error", (err as { [key: string]: unknown })?.data || err);
 		}
-	}, [calendar.id, inviteeEmail]);
+	}, [inviteeEmail]);
 
 	return (
-		<View>
+		<View style={styles.container}>
 			<Text style={styles.title}>
-				Invite people to your calendar
+				Invite people to <Text style={styles.italic}>{calendar.name}</Text>
 			</Text>
 			<View style={styles.form}>
-				<TextInput
+				<BottomSheetTextInput
 					style={styles.input}
 					placeholder="Email of the person you want to invite"
 					placeholderTextColor="#ccc"
@@ -57,6 +58,7 @@ export const CreateInvitationPanel = ({ calendar }: Props) => {
 					label="Generate Invitation Link"
 					onPress={inviteNewUser}
 					primary
+					disabled={!inviteeEmail.trim()}
 				/>
 			</View>
 
@@ -75,11 +77,14 @@ export const CreateInvitationPanel = ({ calendar }: Props) => {
 };
 
 const styles = StyleSheet.create({
+	container: {
+		paddingBottom: 16,
+	},
 	title: {
 		fontSize: 18,
 		fontWeight: "bold",
 		marginTop: 16,
-		marginBottom: 8
+		marginBottom: 8,
 	},
 	form: {
 		marginBottom: 16,
@@ -107,4 +112,5 @@ const styles = StyleSheet.create({
 	buttonText: {
 		color: "white",
 	},
+	italic: { fontStyle: "italic" },
 });

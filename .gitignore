@@ -11,3 +11,5 @@ dev_files
 e2e/_*
 
 .env*
+
+ionic-frontend

@@ -1,5 +1,11 @@
 import React, { useEffect, useState, useCallback } from "react";
-import { View, Text, TextInput, TouchableOpacity, StyleSheet } from "react-native";
+import {
+	View,
+	Text,
+	TextInput,
+	TouchableOpacity,
+	StyleSheet,
+} from "react-native";
 import { pb } from "@/api/pocketbase";
 import type { EventsResponse, PersonsResponse } from "@/api/pocketbase-types";
 import { AlertDialog } from "./AlertDialog";
@@ -13,18 +19,18 @@ import { CreatePerson } from "./CreatePerson";
 import { TabBarIcon } from "./navigation/TabBarIcon";
 
 type Props = {
-	persons: PersonsResponse[];
-	closeSlidingDrawer?: () => void;
-	closeAll?: () => void;
-} & Pick<
-	EventsResponse,
-	| "id"
-	| "startDatetime"
-	| "endDatetime"
-	| "title"
-	| "description"
-	| "calendar"
-	| "color"
+	persons?: PersonsResponse[];
+} & Partial<
+	Pick<
+		EventsResponse,
+		| "id"
+		| "startDatetime"
+		| "endDatetime"
+		| "title"
+		| "description"
+		| "calendar"
+		| "color"
+	>
 >;
 
 const setDateTimes = (formData: FormData) => {
@@ -53,7 +59,6 @@ const setDateTimes = (formData: FormData) => {
 	}
 };
 
-
 const deleteEvent = (id: string) => {
 	pb.collection("events").delete(id);
 };
@@ -71,8 +76,6 @@ export const EventPanelCrud = ({
 	description,
 	color,
 	persons,
-	closeSlidingDrawer,
-	closeAll,
 }: Props) => {
 	const allPersons = useRecoilValue(PersonsState);
 	const [startDate, setStartDate] = useState<string>("");
@@ -102,14 +105,18 @@ export const EventPanelCrud = ({
 	}, [startDatetime, endDatetime]);
 
 	const handleInputChange = useCallback((name: string, value: string) => {
-		setFormData(prev => ({ ...prev, [name]: value }));
+		setFormData((prev) => ({ ...prev, [name]: value }));
 	}, []);
 
 	const handleSubmit = useCallback(async () => {
 		const eventData = {
 			...formData,
-			startDatetime: new Date(`${startDate}T${startTime || '00:00'}`).toISOString(),
-			endDatetime: endDate ? new Date(`${endDate}T${endTime || '00:00'}`).toISOString() : null,
+			startDatetime: new Date(
+				`${startDate}T${startTime || "00:00"}`,
+			).toISOString(),
+			endDatetime: endDate
+				? new Date(`${endDate}T${endTime || "00:00"}`).toISOString()
+				: null,
 			calendar,
 			owner: pb.authStore.model?.id,
 		};
@@ -124,18 +131,21 @@ export const EventPanelCrud = ({
 			title: "",
 			description: "",
 		});
-
-		if (closeSlidingDrawer) closeSlidingDrawer();
-	}, [formData, startDate, startTime, endDate, endTime, calendar, id, closeSlidingDrawer]);
+	}, [formData, startDate, startTime, endDate, endTime, calendar, id]);
 
 	return (
 		<View>
 			<View style={styles.header}>
-				<Text style={styles.title}>{id ? "Update Event" : "Create New Event"}</Text>
+				<Text style={styles.title}>
+					{id ? "Update Event" : "Create New Event"}
+				</Text>
 				{id && (
 					<AlertDialog
 						triggerElement={
-							<TouchableOpacity style={styles.deleteButton} onPress={() => setIsAlertDialogVisible(true)}>
+							<TouchableOpacity
+								style={styles.deleteButton}
+								onPress={() => setIsAlertDialogVisible(true)}
+							>
 								<TabBarIcon name="trash" style={styles.icon} />
 								<Text>Delete</Text>
 							</TouchableOpacity>
@@ -151,7 +161,6 @@ export const EventPanelCrud = ({
 						actionText="Delete"
 						action={() => {
 							pb.collection("events").delete(id);
-							if (closeAll) closeAll();
 						}}
 						isVisible={isAlertDialogVisible}
 						onClose={() => {}}
@@ -250,19 +259,19 @@ export const EventPanelCrud = ({
 
 const styles = StyleSheet.create({
 	header: {
-		flexDirection: 'row',
-		justifyContent: 'space-between',
-		alignItems: 'center',
+		flexDirection: "row",
+		justifyContent: "space-between",
+		alignItems: "center",
 		marginBottom: 16,
 	},
 	title: {
 		fontSize: 18,
-		fontWeight: 'bold',
+		fontWeight: "bold",
 	},
 	deleteButton: {
-		flexDirection: 'row',
-		alignItems: 'center',
-		backgroundColor: '#f0f0f0',
+		flexDirection: "row",
+		alignItems: "center",
+		backgroundColor: "#f0f0f0",
 		padding: 8,
 		borderRadius: 20,
 	},
@@ -272,7 +281,7 @@ const styles = StyleSheet.create({
 	},
 	input: {
 		borderWidth: 1,
-		borderColor: '#ccc',
+		borderColor: "#ccc",
 		borderRadius: 4,
 		padding: 8,
 		marginBottom: 12,
@@ -281,37 +290,37 @@ const styles = StyleSheet.create({
 		height: 100,
 	},
 	dateTimeContainer: {
-		flexDirection: 'row',
-		justifyContent: 'space-between',
+		flexDirection: "row",
+		justifyContent: "space-between",
 		marginBottom: 12,
 	},
 	dateTimeInput: {
-		width: '48%',
+		width: "48%",
 	},
 	label: {
 		marginBottom: 4,
 	},
 	selectorsContainer: {
-		flexDirection: 'row',
-		justifyContent: 'space-between',
+		flexDirection: "row",
+		justifyContent: "space-between",
 		marginBottom: 16,
 	},
 	separator: {
 		height: 1,
-		backgroundColor: '#ccc',
+		backgroundColor: "#ccc",
 		marginVertical: 8,
 	},
 	submitButton: {
-		backgroundColor: '#007AFF',
+		backgroundColor: "#007AFF",
 		padding: 12,
 		borderRadius: 4,
-		alignItems: 'center',
+		alignItems: "center",
 	},
 	submitButtonText: {
-		color: 'white',
-		fontWeight: 'bold',
+		color: "white",
+		fontWeight: "bold",
 	},
 	strong: {
-		fontWeight: 'bold',
+		fontWeight: "bold",
 	},
 });

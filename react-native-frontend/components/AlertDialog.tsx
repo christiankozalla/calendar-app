@@ -16,7 +16,7 @@ export const AlertDialog = ({
 	action: () => void;
 	title: string;
 	isVisible: boolean;
-	onClose: () => void;
+	onClose?: () => void;
 }) => {
 	return (
 		<View>
@@ -39,7 +39,7 @@ export const AlertDialog = ({
 								style={[styles.button, styles.actionButton]}
 								onPress={() => {
 									action();
-									onClose();
+									onClose?.();
 								}}
 							>
 								<Text style={[styles.buttonText, styles.actionButtonText]}>

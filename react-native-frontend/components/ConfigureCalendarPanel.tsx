@@ -2,10 +2,8 @@ import {
 	View,
 	Text,
 	ActivityIndicator,
-	FlatList,
 	StyleSheet,
 	TouchableOpacity,
-	TextInput,
 } from "react-native";
 import {
 	Collections,
@@ -15,16 +13,21 @@ import {
 import { pb } from "@/api/pocketbase";
 import { useCallback, useEffect, useState } from "react";
 import { TabBarIcon } from "./navigation/TabBarIcon";
-import { useRecoilState, useSetRecoilState } from "recoil";
+import { useRecoilState } from "recoil";
 import { CalendarsState } from "@/store/Calendars";
 import { CreateInvitationPanel } from "./CreateInvitationPanel";
 import { updateCalendarState } from "@/utils/calendar";
 import Button from "react-native-ui-lib/button";
+import {
+	BottomSheetTextInput,
+	BottomSheetFlatList,
+} from "@gorhom/bottom-sheet";
 
 type Props = {
 	calendarId: string;
-	closeSlidingDrawer?: () => void;
 };
+
+type Nullable<T> = T | null | undefined;
 
 const removeUserFromCalendar = async (
 	calendar: CalendarsResponse<{ users: UsersResponse[] }>,
@@ -44,16 +47,15 @@ const deleteCalendar = async (calendarId: string) => {
 	await pb.collection(Collections.Calendars).delete(calendarId);
 };
 
-export const ConfigureCalendarPanel = ({ calendarId, closeSlidingDrawer }: Props) => {
+export const ConfigureCalendarPanel = ({ calendarId }: Props) => {
 	const [calendars, setCalendars] = useRecoilState(CalendarsState);
 	const [loading, setLoading] = useState(false);
-	const [calendar, setCalendar] = useState<
-		| CalendarsResponse<{
-				users: UsersResponse[];
-		  }>
-		| undefined
-		| null
-	>(null);
+	const [calendar, setCalendar] = useState<Nullable<
+		CalendarsResponse<{
+			users: UsersResponse[];
+		}>
+	>>(null);
+	// const { dismiss } = useBottomSheetModal();
 
 	useEffect(() => {
 		(async () => {
@@ -65,9 +67,9 @@ export const ConfigureCalendarPanel = ({ calendarId, closeSlidingDrawer }: Props
 				} else {
 					const calendar = await pb
 						.collection<CalendarsResponse<{ users: UsersResponse[] }>>(
-						Collections.Calendars,
-					)
-					.getOne(calendarId, { expand: "users" });
+							Collections.Calendars,
+						)
+						.getOne(calendarId, { expand: "users" });
 
 					setCalendar(calendar);
 					setCalendars((prev) => updateCalendarState(prev, calendar));
@@ -85,6 +87,7 @@ export const ConfigureCalendarPanel = ({ calendarId, closeSlidingDrawer }: Props
 			return;
 		}
 		try {
+			setLoading(true);
 			const updatedCalendar = await pb
 				.collection(Collections.Calendars)
 				.update<CalendarsResponse<{ users: UsersResponse[] }>>(
@@ -97,6 +100,7 @@ export const ConfigureCalendarPanel = ({ calendarId, closeSlidingDrawer }: Props
 		} catch (err) {
 			console.error(err);
 		} finally {
+			setLoading(false);
 		}
 	}, [calendar]);
 
@@ -110,10 +114,11 @@ export const ConfigureCalendarPanel = ({ calendarId, closeSlidingDrawer }: Props
 
 	const owner = calendar.expand?.users.find((u) => u.id === calendar.owner);
 
+
 	return (
 		<View style={styles.container}>
 			<View style={styles.header}>
-				<TextInput
+				<BottomSheetTextInput
 					style={styles.title}
 					value={calendar?.name}
 					onChangeText={(text) => {
@@ -123,50 +128,57 @@ export const ConfigureCalendarPanel = ({ calendarId, closeSlidingDrawer }: Props
 					onBlur={updateCalendar}
 				/>
 			</View>
-			<Text style={styles.owner}>Created by {owner?.name}</Text>
-			{owner &&
-				(calendar.expand?.users || []).filter((u) => u.id !== owner?.id)
-					.length > 0 && (
-					<FlatList
-						keyExtractor={(u) => u.id}
-						data={calendar?.expand?.users.filter((u) => u.id !== owner?.id)}
-						renderItem={({ item: u }: { item: UsersResponse }) => (
-							<View style={styles.userListItem}>
-								<Text style={styles.userName}>{u.name}</Text>
-								{owner && owner.id !== u.id && (
-									<TouchableOpacity
-										onPress={() => {
-											setLoading(true);
-											removeUserFromCalendar(calendar, u.id)
-												.then((updatedCalendar) => {
-													setCalendar(updatedCalendar);
-												})
-												.finally(() => {
-													setLoading(false);
-												});
-										}}
-									>
-										<TabBarIcon name="remove-circle" style={styles.icon} />
-									</TouchableOpacity>
-								)}
-							</View>
-						)}
-					/>
-				)}
+			{owner && (
+				<>
+					<Text style={styles.owner}>
+						Created by{" "}
+						{owner.id === pb.authStore.model?.id
+							? "you"
+							: owner?.name || "user without name"}
+					</Text>
+
+					{(calendar.expand?.users || []).filter((u) => u.id !== owner?.id)
+						.length > 0 && (
+						<BottomSheetFlatList
+							keyExtractor={(u) => u.id}
+							data={calendar?.expand?.users.filter((u) => u.id !== owner?.id)}
+							renderItem={({ item: u }: { item: UsersResponse }) => (
+								<View style={styles.userListItem}>
+									<Text style={styles.userName}>{u.name}</Text>
+									{owner && owner.id !== u.id && (
+										<TouchableOpacity
+											onPress={() => {
+												setLoading(true);
+												removeUserFromCalendar(calendar, u.id)
+													.then((updatedCalendar) => {
+														setCalendar(updatedCalendar);
+													})
+													.finally(() => {
+														setLoading(false);
+													});
+											}}
+										>
+											<TabBarIcon name="remove-circle" style={styles.icon} />
+										</TouchableOpacity>
+									)}
+								</View>
+							)}
+						/>
+					)}
+				</>
+			)}
 
 			<CreateInvitationPanel calendar={calendar} />
 
+			{/* TODO: Introduce Confirmation-Step before deleting */}
 			<Button
 				label="Delete Calendar"
 				backgroundColor="#900"
 				onPress={() =>
-					deleteCalendar(calendarId)
-						.then(() =>
-							setCalendars((prev) => prev.filter((c) => c.id !== calendarId)),
-						)
-						.finally(() => {
-							closeSlidingDrawer?.();
-						})
+					deleteCalendar(calendarId).then(() => {
+						setCalendars((prev) => prev.filter((c) => c.id !== calendarId));
+						// dismiss();
+					})
 				}
 			/>
 		</View>
@@ -177,6 +189,8 @@ const styles = StyleSheet.create({
 	container: {
 		flex: 1,
 		gap: 4,
+		height: "100%",
+		marginBottom: 16,
 	},
 	header: {
 		flexDirection: "row",
@@ -220,5 +234,12 @@ const styles = StyleSheet.create({
 	saveButtonText: {
 		fontWeight: "bold",
 		textAlign: "center",
+	},
+	input: {
+		borderWidth: 1,
+		borderColor: "#ccc",
+		borderRadius: 4,
+		padding: 8,
+		marginBottom: 12,
 	},
 });

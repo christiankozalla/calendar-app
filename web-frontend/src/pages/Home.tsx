@@ -46,9 +46,9 @@ const CalendarList = ({
 
 	useEffect(() => {
 		const calendarIds = calendars?.map((c) => c.id);
-		if (calendarIds) {
+		if (calendarIds && calendarIds.length > 0) {
 			const filter = pb.filter(
-				`calendar = '${calendarIds?.join("' || calendar = ")}' && startDatetime > {:now}`,
+				`${calendarIds.map((id) => `calendar = '${id}'`).join(" || ")} && startDatetime > {:now}`,
 				{ now: new Date() },
 			);
 			pb.collection(Collections.Events)

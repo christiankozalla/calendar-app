@@ -6,7 +6,6 @@ import {
 	FlatList,
 	StyleSheet,
 } from "react-native";
-import { useSlidingDrawer } from "@/hooks/useSlidingDrawer";
 import type { EventsResponse, PersonsResponse } from "@/api/pocketbase-types";
 import { EventPanelCrud } from "./EventPanelCrud";
 import { TabBarIcon } from "./navigation/TabBarIcon";
@@ -14,7 +13,6 @@ import { TabBarIcon } from "./navigation/TabBarIcon";
 export const EventList = ({
 	events,
 }: { events: EventsResponse<{ persons: PersonsResponse[] }>[] }) => {
-	const { push } = useSlidingDrawer();
 
 	const renderEvent = ({
 		item: event,
@@ -24,12 +22,12 @@ export const EventList = ({
 				<Text numberOfLines={1} style={styles.title}>{event.title || "Untitled Event"}</Text>
 				<TouchableOpacity
 					style={styles.editButton}
-					onPress={() =>
-						push({
-							state: { isOpen: true },
-							props: { ...event, persons: event.expand?.persons },
-							component: EventPanelCrud,
-						})
+					onPress={() => console.log("Implement Add New Event on Push")
+						// push({
+						// 	state: { isOpen: true },
+						// 	props: { ...event, persons: event.expand?.persons },
+						// 	component: EventPanelCrud,
+						// })
 					}
 				>
 					<TabBarIcon name="pencil" style={styles.icon} />

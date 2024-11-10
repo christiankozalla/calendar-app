@@ -1,11 +1,18 @@
-import { useCallback, useRef, useState, useEffect, useMemo } from "react";
+import {
+	useCallback,
+	useRef,
+	useState,
+	useEffect,
+	useMemo,
+	type ReactNode,
+} from "react";
 import {
 	View,
 	Text,
 	Image,
-	TouchableOpacity,
 	StyleSheet,
 	ActivityIndicator,
+	SafeAreaView,
 } from "react-native";
 import { pb } from "@/api/pocketbase";
 import type {
@@ -19,7 +26,6 @@ import { isSameDay } from "date-fns";
 import { inRange } from "@/utils/date";
 import { EventList } from "@/components/EventList";
 import { EventPanelCrud } from "@/components/EventPanelCrud";
-import { useSlidingDrawer } from "@/hooks/useSlidingDrawer";
 import { Header } from "@/components/Header";
 import { ColorsState } from "@/store/Colors";
 import { PersonsState } from "@/store/Persons";
@@ -27,11 +33,12 @@ import { type DateData, Calendar } from "react-native-calendars";
 import { eventsToMarkedDates } from "@/utils/calendar";
 import { TabBarIcon } from "@/components/navigation/TabBarIcon";
 import type { ClientResponseError } from "pocketbase";
+import BottomSheet, { BottomSheetModal, BottomSheetView } from "@gorhom/bottom-sheet";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { globalstyles } from "@/utils/globalstyles";
 
-const findEventsForDay = (
-	events: EventsResponse[],
-	day: Date | string,
-): EventsResponse[] =>
+// biome-ignore lint: unexpected any
+const findEventsForDay = (events: EventsResponse<any>[], day: Date | string) =>
 	events?.filter((e) => {
 		// biome-ignore lint: param reassign is not confusing, this is a shallow helper func
 		day = typeof day === "string" ? new Date(day) : day;
@@ -53,7 +60,8 @@ export default function CalendarScreen() {
 
 	const [error, setError] = useState<Error | ClientResponseError>();
 
-	const { push, update } = useSlidingDrawer();
+	const bottomSheetRef = useRef<BottomSheetModal>(null);
+	const [bottomSheetContent, setBottomSheetContent] = useState<ReactNode>();
 
 	useEffect(() => {
 		if (calendarId) {
@@ -142,85 +150,58 @@ export default function CalendarScreen() {
 
 	const openCreateNewEvent = useCallback(
 		(datetime: Date | string) => {
-			push({
-				state: { isOpen: true },
-				props: {
-					startDatetime:
-						typeof datetime !== "string" ? datetime.toISOString() : datetime,
-					calendar: calendarId,
-				},
-				component: EventPanelCrud,
-			});
+			// push({
+			// 	state: { isOpen: true },
+			// 	props: {
+			// 		startDatetime:
+			// 			typeof datetime !== "string" ? datetime.toISOString() : datetime,
+			// 		calendar: calendarId,
+			// 	},
+			// 	component: EventPanelCrud,
+			// });
+			const props = {
+				startDatetime:
+					typeof datetime !== "string" ? datetime.toISOString() : datetime,
+				calendar: calendarId,
+			};
+			setBottomSheetContent(<EventPanelCrud {...props} />);
 		},
-		[calendarId, push],
+		[calendarId],
 	);
-
-	const eventListId = useRef<string>();
-	const newEventSliderId = useRef<string>();
 
 	useEffect(() => {
 		if (selected) {
 			const eventsForSelectedDay = findEventsForDay(events, selected);
 			if (eventsForSelectedDay.length) {
-				if (eventListId.current) {
-					update({
-						id: eventListId.current,
-						state: { isOpen: true, height: "full" },
-						slots: {
-							upperLeftSlot: (
-								<TouchableOpacity
-									style={styles.addButton}
-									onPress={() => openCreateNewEvent(selected)}
-								>
-									<Text style={styles.addButtonText}>+</Text>
-								</TouchableOpacity>
-							),
-						},
-						props: { events: eventsForSelectedDay },
-					});
-				} else {
-					eventListId.current = push({
-						state: { isOpen: true, height: "full" },
-						slots: {
-							upperLeftSlot: (
-								<TouchableOpacity
-									style={styles.addButton}
-									onPress={() => openCreateNewEvent(selected)}
-								>
-									<Text style={styles.addButtonText}>+</Text>
-								</TouchableOpacity>
-							),
-						},
-						props: {
-							events: eventsForSelectedDay,
-						},
-						component: EventList,
-					});
-				}
+				setBottomSheetContent(<EventList events={eventsForSelectedDay} />);
+				// eventListId.current = push({
+				// 	state: { isOpen: true, height: "full" },
+				// 	slots: {
+				// 		upperLeftSlot: (
+				// 			<TouchableOpacity
+				// 				style={styles.addButton}
+				// 				onPress={() => openCreateNewEvent(selected)}
+				// 			>
+				// 				<Text style={styles.addButtonText}>+</Text>
+				// 			</TouchableOpacity>
+				// 		),
+				// 	},
+				// 	props: {
+				// 		events: eventsForSelectedDay,
+				// 	},
+				// 	component: EventList,
+				// });
 			} else {
 				// No events for selected date
-				if (newEventSliderId.current) {
-					update({
-						id: newEventSliderId.current,
-						state: { isOpen: true },
-						props: {
-							startDatetime: selected,
-							calendar: calendarId,
-						},
-					});
-				} else {
-					newEventSliderId.current = push({
-						state: { isOpen: true },
-						props: {
-							calendar: calendarId,
-							startDatetime: selected,
-						},
-						component: EventPanelCrud,
-					});
-				}
+				const props = {
+					calendar: calendarId,
+					startDatetime: selected,
+				};
+				setBottomSheetContent(<EventPanelCrud {...props} />);
 			}
+			bottomSheetRef.current?.expand();
 		}
-	}, [calendarId, selected, openCreateNewEvent, push, update]);
+	}, [calendarId, selected, openCreateNewEvent]);
 
 	const markedDates = useMemo(
 		() => eventsToMarkedDates(events, colors),
@@ -254,27 +235,34 @@ export default function CalendarScreen() {
 	}
 
 	return (
-		<View style={styles.container}>
-			<Header style={styles.header}>
-				<Link href="/" push>
-					{pb.authStore.model?.avatar ? (
-						<Image source={{ uri: pb.authStore.model.avatar }} />
-					) : (
-						<TabBarIcon name="person-circle" style={styles.icon} />
-					)}
-				</Link>
-				<Text style={styles.headerText}>{calendarFromBackend?.name}</Text>
-			</Header>
-			<Calendar
-				firstDay={1}
-				markingType="multi-period"
-				markedDates={markedDates}
-				selected={selected}
-				onDayPress={(day: DateData) => {
-					setSelected(day.dateString as `${number}-${number}-${number}`);
-				}}
-			/>
-		</View>
+		<SafeAreaView style={globalstyles.safeArea}>
+			<View style={styles.container}>
+				<Header style={styles.header}>
+					<Link href="/" push>
+						{pb.authStore.model?.avatar ? (
+							<Image source={{ uri: pb.authStore.model.avatar }} />
+						) : (
+							<TabBarIcon name="person-circle" style={styles.icon} />
+						)}
+					</Link>
+					<Text style={styles.headerText}>{calendarFromBackend?.name}</Text>
+				</Header>
+				<Calendar
+					firstDay={1}
+					markingType="multi-period"
+					markedDates={markedDates}
+					selected={selected}
+					onDayPress={(day: DateData) => {
+						setSelected(day.dateString as `${number}-${number}-${number}`);
+					}}
+				/>
+				<GestureHandlerRootView>
+					<BottomSheetModal ref={bottomSheetRef}>
+						<BottomSheetView>{bottomSheetContent}</BottomSheetView>
+					</BottomSheetModal>
+				</GestureHandlerRootView>
+			</View>
+		</SafeAreaView>
 	);
 }
 
@@ -282,7 +270,6 @@ const styles = StyleSheet.create({
 	container: {
 		flex: 1,
 		backgroundColor: "white",
-		flexDirection: "column",
 	},
 	loadingContainer: {
 		flex: 1,

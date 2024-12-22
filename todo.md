@@ -12,6 +12,9 @@ const [bottomSheetContent, setBottomSheetContent] = useState();
 </BottomSheetModal>
 ```
 
+# TODO
+
+
 - Event Chat:
     - table Messages (id, eventId, authorId (userId))
     - each message references an event by id
@@ -23,34 +26,13 @@ const [bottomSheetContent, setBottomSheetContent] = useState();
     - when an Event Chat (for a single event) is opened, the most recent messages are fetched and displayed in a chronological order, authors are marked obviously
 
 
-1. Navigation kleiner CHECK (Test?!)
 
 2. Global error handler / screen
 
-3. Create Event Crud - date & time input controlled by useState! CHECK
-    start time ==> optional
-    Verbessere die UX beim Events erstellen
-        Person, die gerade erstellt wurde, sofort auswählen
-        einfachere Zeit auswahl..
-
-4. Animation onSwipe LEFT or RIGHT im Kalendar, damit der User merkt, dass was passiert ist
-
-5. Kein vertikales Scrollen im Kalender möglich! CHECK
-
-6. Event-Title in das Farbband des Events hineinrendern. CHECK
-
-7. Chat - Author.name undefined? CHECK
-
-
-Swipe Events funktionieren auf dem Handy nicht, wegen Scrolling (zumindest in UP und DOWN Richtung nicht..)
 
 8. Calendar CRUD 
-8.1. Users that do not have a calendar will be asked to create a calendar in a drawer and the asked to invite other people.
+    - Users that do not have a calendar will be asked to create a calendar in a drawer and the asked to invite other people.
  
-9. Add color rows on migration
-
-
-
 
 Migrate to React Native fully...
 
@@ -63,5 +45,8 @@ Migrate to React Native fully...
 4. use Touchable components from @gorhom/bottom-sheet
 
 5. Chat feature !?
+
+
+6. ConfigureCalendarPanel -> Move Delete Button to upper right corner as a small Trash/Bin icon! 
 
 

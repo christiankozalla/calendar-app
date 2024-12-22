@@ -66,6 +66,10 @@ export default function RootLayout() {
 								options={{ headerShown: false }}
 							/>
 							<Stack.Screen
+								name="(tabs)/change-email"
+								options={{ headerShown: false }}
+							/>
+							<Stack.Screen
 								name="(tabs)/calendars/[calendarId]"
 								options={{ headerShown: false }}
 							/>

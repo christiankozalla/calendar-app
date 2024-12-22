@@ -111,7 +111,7 @@ export default function LoginSignup() {
             placeholder="Name"
             value={name}
             onChangeText={setName}
-            placeholderTextColor="#444"
+            placeholderTextColor="#999"
           />
         )}
         <TextInput
@@ -121,7 +121,7 @@ export default function LoginSignup() {
           onChangeText={setEmail}
           keyboardType="email-address"
           editable={!inviteToken}
-          placeholderTextColor="#444"
+          placeholderTextColor="#999"
         />
         <TextInput
           style={styles.input}
@@ -129,7 +129,7 @@ export default function LoginSignup() {
           value={password}
           onChangeText={setPassword}
           secureTextEntry
-          placeholderTextColor="#444"
+          placeholderTextColor="#999"
         />
         {activeTab === 'signup' && (
           <TextInput
@@ -138,7 +138,7 @@ export default function LoginSignup() {
             value={passwordConfirm}
             onChangeText={setPasswordConfirm}
             secureTextEntry
-            placeholderTextColor="#444"
+            placeholderTextColor="#999"
           />
         )}
         <TouchableOpacity style={styles.button} onPress={handleSubmit}>

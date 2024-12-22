@@ -2,7 +2,6 @@ import {
 	useRef,
 	useEffect,
 	useState,
-	useMemo,
 	type ReactNode,
 	type Dispatch,
 	type SetStateAction,
@@ -14,7 +13,6 @@ import {
 	FlatList,
 	TouchableOpacity,
 	StyleSheet,
-	Dimensions,
 } from "react-native";
 import { pb } from "@/api/pocketbase";
 import {
@@ -32,15 +30,17 @@ import { CalendarsState } from "@/store/Calendars";
 import { CreateCalendarPanel } from "@/components/CreateCalendarPanel";
 import Button from "react-native-ui-lib/button";
 import { typography } from "@/utils/typography";
-import { BottomSheetModal, BottomSheetView } from "@gorhom/bottom-sheet";
-import type { BottomSheetModalMethods } from "@gorhom/bottom-sheet/lib/typescript/types";
+import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { CreateInvitationPanel } from "@/components/CreateInvitationPanel";
 import { globalstyles } from "@/utils/globalstyles";
+import { StatusBar } from "expo-status-bar";
+import { ProfileInfoPanel } from "@/components/ProfileInfoPanel";
+import { bottomsheetStyles } from "@/utils/bottomsheetStyles";
 
 type CalendarListProps = {
 	calendars: CalendarsResponse[] | null;
-	bottomSheetRef: RefObject<BottomSheetModalMethods>;
+	bottomSheetRef: RefObject<BottomSheetModal>;
 	setBottomSheetContent: Dispatch<SetStateAction<ReactNode>>;
 };
 
@@ -99,12 +99,12 @@ export default function HomeScreen() {
 
 	useEffect(() => {
 		isAuthenticated &&
-			pb.authStore.model?.id &&
+			pb.authStore.record?.id &&
 			pb
 				.collection(Collections.Calendars)
 				.getFullList<CalendarsWithUsers>({
 					filter: pb.filter("users ~ {:userId}", {
-						userId: pb.authStore.model.id,
+						userId: pb.authStore.record.id,
 					}),
 					expand: "users",
 				})
@@ -115,14 +115,6 @@ export default function HomeScreen() {
 					console.error(e);
 				});
 	}, []);
-
-	// useEffect(() => {
-	// 	if (bottomSheetContent) {
-	// 		bottomSheetRef.current?.present();
-	// 	} else {
-	// 		bottomSheetRef.current?.collapse();
-	// 	}
-	// }, [bottomSheetContent])
 
 	const createCalendar = async () => {
 		const { promise, resolve, reject } =
@@ -145,11 +137,10 @@ export default function HomeScreen() {
 
 	return (
 		<SafeAreaView style={globalstyles.safeArea}>
+			<StatusBar style="dark" />
 			<View style={styles.container}>
 				<Header style={styles.header}>
-					<Text style={styles.headerText}>
-						Hey {pb.authStore.model?.name ?? "friend"}!
-					</Text>
+					<ProfileInfoPanel />
 				</Header>
 
 				<View style={styles.createCalendar}>
@@ -170,12 +161,10 @@ export default function HomeScreen() {
 
 				<BottomSheetModal
 					ref={bottomSheetRef}
-					style={styles.bsContainer}
+					style={bottomsheetStyles.container}
 					enablePanDownToClose
 				>
-					<BottomSheetView style={{ flex: 1, height: "100%" }}>
-						{bottomSheetContent}
-					</BottomSheetView>
+					{bottomSheetContent}
 				</BottomSheetModal>
 			</View>
 		</SafeAreaView>
@@ -238,17 +227,5 @@ const styles = StyleSheet.create({
 		alignItems: "center",
 		marginTop: 12,
 		marginBottom: 12,
-	},
-	bsContainer: {
-		flex: 1,
-		paddingHorizontal: 16,
-		shadowColor: "#000",
-		shadowOffset: {
-			width: 0,
-			height: -2,
-		},
-		shadowOpacity: 0.2,
-		shadowRadius: 4.65,
-		elevation: 4,
 	},
 });

@@ -36,10 +36,11 @@ export const CreatePerson = ({ calendar }: Props) => {
 	return (
 		<View style={styles.container}>
 			<TextInput
-				style={styles.input}
-				placeholder="Name"
 				value={name}
 				onChangeText={setName}
+				placeholder="Name"
+				placeholderTextColor="#999"
+				style={styles.input}
 			/>
 			<TouchableOpacity style={styles.button} onPress={submit}>
 				<Text style={styles.buttonText}>Create Person</Text>

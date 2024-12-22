@@ -6,6 +6,7 @@ import (
 
 	"github.com/christiankozalla/calendar-app/dotenv"
 	"github.com/christiankozalla/calendar-app/eventhandlers"
+
 	_ "github.com/christiankozalla/calendar-app/migrations"
 
 	"github.com/pocketbase/pocketbase"
@@ -22,6 +23,7 @@ func main() {
 
 	app := pocketbase.New()
 
+	// indexFallback true is only needed when serving an SPA through pocketbase public directory. If the frontend is a React Native app, indexFallback is not needed.
 	var indexFallback bool
 	app.RootCmd.PersistentFlags().BoolVar(
 		&indexFallback,
@@ -35,16 +37,16 @@ func main() {
 		Automigrate: os.Getenv("AUTOMIGRATE") == "true",
 	})
 
-	app.OnRecordBeforeCreateRequest("invitations").Add(eventhandlers.OnBeforeCreateInvitation(app))
-	app.OnRecordAfterCreateRequest("users").Add(eventhandlers.OnAfterUsersCreateHandleInvitation(app))
+	app.OnRecordCreateRequest("invitations").BindFunc(eventhandlers.OnBeforeCreateInvitation(app))
+	app.OnRecordCreateRequest("users").BindFunc(eventhandlers.OnAfterUsersCreateHandleInvitation(app))
 
-	app.OnRecordBeforeCreateRequest("events").Add(eventhandlers.SanitizeDescriptionOnCreate)
-	app.OnRecordBeforeUpdateRequest("events").Add(eventhandlers.SanitizeDescriptionOnUpdate)
+	app.OnRecordCreateRequest("events").BindFunc(eventhandlers.SanitizeDescriptionOnCreate)
+	app.OnRecordUpdateRequest("events").BindFunc(eventhandlers.SanitizeDescriptionOnUpdate)
 
 	// serves static files from the provided public dir (if exists)
-	app.OnBeforeServe().Add(func(e *core.ServeEvent) error {
-		e.Router.GET("/*", apis.StaticDirectoryHandler(os.DirFS("./pb_public"), indexFallback))
-		return nil
+	app.OnServe().BindFunc(func(e *core.ServeEvent) error {
+		e.Router.GET("/{path...}", apis.Static(os.DirFS("./pb_public"), indexFallback))
+		return e.Next()
 	})
 
 	if err := app.Start(); err != nil {

@@ -48,4 +48,10 @@ export const typography = StyleSheet.create({
         lineHeight: 32,
         letterSpacing: -0.3,
     },
+    small: {
+        fontSize: 12,
+        fontWeight: '400',
+        lineHeight: 16,
+        letterSpacing: 0,
+    },
 });

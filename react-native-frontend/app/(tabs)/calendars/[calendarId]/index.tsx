@@ -1,64 +1,67 @@
-import {
-	useCallback,
-	useRef,
-	useState,
-	useEffect,
-	useMemo,
-	type ReactNode,
-} from "react";
+import { useCallback, useRef, useState, useEffect, useMemo, type ReactNode } from "react";
 import {
 	View,
 	Text,
-	Image,
 	StyleSheet,
 	ActivityIndicator,
 	SafeAreaView,
 } from "react-native";
 import { pb } from "@/api/pocketbase";
-import type {
-	EventsResponse,
-	CalendarsResponse,
-	PersonsResponse,
-} from "@/api/pocketbase-types";
+import type { EventsResponse, PersonsResponse } from "@/api/pocketbase-types";
 import { Link, useGlobalSearchParams } from "expo-router";
 import { useRecoilValue, useSetRecoilState } from "recoil";
 import { isSameDay } from "date-fns";
-import { inRange } from "@/utils/date";
-import { EventList } from "@/components/EventList";
-import { EventPanelCrud } from "@/components/EventPanelCrud";
+import {
+	inRange,
+	roundToNearestHour,
+	setDateWithCurrentTime,
+} from "@/utils/date";
+import { EventListPanel } from "@/components/EventListPanel";
+import { EventCreateUpdatePanel } from "@/components/EventCreateUpdatePanel";
 import { Header } from "@/components/Header";
 import { ColorsState } from "@/store/Colors";
 import { PersonsState } from "@/store/Persons";
-import { type DateData, Calendar } from "react-native-calendars";
+import { type DateData, Calendar, CalendarList } from "react-native-calendars";
 import { eventsToMarkedDates } from "@/utils/calendar";
-import { TabBarIcon } from "@/components/navigation/TabBarIcon";
 import type { ClientResponseError } from "pocketbase";
-import BottomSheet, { BottomSheetModal, BottomSheetView } from "@gorhom/bottom-sheet";
-import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { globalstyles } from "@/utils/globalstyles";
+import { StatusBar } from "expo-status-bar";
+import { CalendarsState } from "@/store/Calendars";
+import { Avatar } from "@/components/Avatar";
+import { bottomsheetStyles } from "@/utils/bottomsheetStyles";
 
-// biome-ignore lint: unexpected any
-const findEventsForDay = (events: EventsResponse<any>[], day: Date | string) =>
-	events?.filter((e) => {
-		// biome-ignore lint: param reassign is not confusing, this is a shallow helper func
-		day = typeof day === "string" ? new Date(day) : day;
+const findEventsForDay = (
+	events: EventWithPersons[],
+	day: Date | string,
+) => {
+	// biome-ignore lint: param reassign is not confusing, this is a shallow helper func
+	day = typeof day === "string" ? new Date(day) : day;
+	return events?.filter((e) => {
 		return !e.endDatetime
 			? isSameDay(day, e.startDatetime)
 			: inRange(day, new Date(e.startDatetime), new Date(e.endDatetime));
 	});
+};
+
+const selectedStyle = {
+	selected: true,
+	selectedColor: "#00adf5",
+	selectedTextColor: "#ffffff",
+};
+
+type EventWithPersons = EventsResponse<{ persons: PersonsResponse[] }>;
 
 export default function CalendarScreen() {
 	const { calendarId } = useGlobalSearchParams<{ calendarId: string }>();
-	const [calendarFromBackend, setCalendar] = useState<CalendarsResponse>();
-	const [events, setEvents] = useState<
-		EventsResponse<{ persons: PersonsResponse[] }>[]
-	>([]);
+	const calendars = useRecoilValue(CalendarsState);
+	const colors = useRecoilValue(ColorsState);
 	const setPersons = useSetRecoilState(PersonsState);
 	const [loading, setLoading] = useState(true);
-	const colors = useRecoilValue(ColorsState);
 	const [selected, setSelected] = useState<`${number}-${number}-${number}`>();
 
-	const [error, setError] = useState<Error | ClientResponseError>();
+	const calendarFromBackend = calendars.find((c) => c.id === calendarId);
+	const [events, setEvents] = useState<EventWithPersons[]>([]);
 
 	const bottomSheetRef = useRef<BottomSheetModal>(null);
 	const [bottomSheetContent, setBottomSheetContent] = useState<ReactNode>();
@@ -66,18 +69,14 @@ export default function CalendarScreen() {
 	useEffect(() => {
 		if (calendarId) {
 			setLoading(true);
-			const calendarRequest = pb.collection("calendars").getOne(calendarId);
+			// const calendarRequest = pb.collection("calendars").getOne(calendarId);
 
 			const eventsRequest = pb
 				.collection("events")
-				.getList<EventsResponse<{ persons: PersonsResponse[] }>>(
-					undefined,
-					undefined,
-					{
-						filter: pb.filter("calendar = {:calendarId}", { calendarId }),
-						expand: "persons",
-					},
-				);
+				.getList<EventWithPersons>(undefined, undefined, {
+					filter: pb.filter("calendar = {:calendarId}", { calendarId }),
+					expand: "persons",
+				});
 
 			const personsRequest = pb
 				.collection("persons")
@@ -85,128 +84,140 @@ export default function CalendarScreen() {
 					filter: pb.filter("calendar = {:calendarId}", { calendarId }),
 				});
 
-			Promise.allSettled([calendarRequest, eventsRequest, personsRequest])
-				.then(([c, e, p]) => {
+			Promise.allSettled([eventsRequest, personsRequest])
+				.then(([e, p]) => {
 					if (e.status === "fulfilled") {
 						setEvents(e.value.items);
 					}
 					if (p.status === "fulfilled") {
 						setPersons(p.value.items);
 					}
-					if (c.status === "fulfilled") {
-						setCalendar(c.value);
-					}
 				})
 				.catch((err) => {
 					console.error(err);
-					setError(err);
 				})
 				.finally(() => {
 					setLoading(false);
 				});
 		}
-	}, [calendarId, setPersons]);
-
-	useEffect(() => {
-		if (calendarId) {
-			pb.collection("events").subscribe<
-				EventsResponse<{ persons: PersonsResponse[] }>
-			>(
-				"*",
-				(collection) => {
-					switch (collection.action) {
-						case "create":
-							setEvents((events) => [...(events ?? []), collection.record]);
-							break;
-
-						case "update":
-							setEvents((events) => [
-								...(events ?? []).filter((e) => e.id !== collection.record.id),
-								collection.record,
-							]);
-							break;
-
-						case "delete":
-							setEvents((events) => [
-								...(events ?? []).filter((e) => e.id !== collection.record.id),
-							]);
-							break;
-
-						default:
-							console.error("Unhandled action:", collection.action);
-					}
-				},
-				{
-					filter: pb.filter("calendar = {:calendarId}", { calendarId }),
-					expand: "persons",
-				},
-			);
-
-			return () => {
-				pb.collection("events").unsubscribe("*");
-			};
-		}
 	}, [calendarId]);
 
+	useEffect(() => {
+		const subscribeToEvents = async () => {
+			if (calendarId) {
+				const unsubscribe = pb.collection("events").subscribe<EventWithPersons>(
+					"*",
+					(collection) => {
+						switch (collection.action) {
+							case "create":
+								setEvents((events) => [...(events ?? []), collection.record]);
+								break;
+
+							case "update":
+								setEvents((events) => [
+									...(events ?? []).filter(
+										(e) => e.id !== collection.record.id,
+									),
+									collection.record,
+								]);
+								break;
+
+							case "delete":
+								setEvents((events) => [
+									...(events ?? []).filter(
+										(e) => e.id !== collection.record.id,
+									),
+								]);
+								break;
+
+							default:
+								console.error("Unhandled action:", collection.action);
+						}
+					},
+					{
+						filter: pb.filter("calendar = {:calendarId}", { calendarId }),
+						expand: "persons",
+					},
+				);
+				return unsubscribe;
+			}
+		};
+
+		const initiateSubscription = async () => {
+			const unsubscribe = await subscribeToEvents();
+			return unsubscribe;
+		};
+
+		const unsubscribePromise = initiateSubscription();
+
+		return () => {
+			unsubscribePromise.then((unsubscribe) => unsubscribe?.());
+		};
+	}, [calendarId]);
+
+	// useEffect(() => {
+	// 	// open bottom sheet every time its content changes
+	// 	bottomSheetRef.current?.present();
+	// }, [bottomSheetContent])
+
 	const openCreateNewEvent = useCallback(
-		(datetime: Date | string) => {
-			// push({
-			// 	state: { isOpen: true },
-			// 	props: {
-			// 		startDatetime:
-			// 			typeof datetime !== "string" ? datetime.toISOString() : datetime,
-			// 		calendar: calendarId,
-			// 	},
-			// 	component: EventPanelCrud,
-			// });
+		(date: string) => {
 			const props = {
-				startDatetime:
-					typeof datetime !== "string" ? datetime.toISOString() : datetime,
+				startDatetime: roundToNearestHour(
+					setDateWithCurrentTime(date),
+					0,
+				).toISOString(),
 				calendar: calendarId,
 			};
-			setBottomSheetContent(<EventPanelCrud {...props} />);
+			setBottomSheetContent(<EventCreateUpdatePanel {...props} />);
+			bottomSheetRef.current?.present();
 		},
 		[calendarId],
 	);
 
-	useEffect(() => {
-		if (selected) {
-			const eventsForSelectedDay = findEventsForDay(events, selected);
-			if (eventsForSelectedDay.length) {
-				setBottomSheetContent(<EventList events={eventsForSelectedDay} />);
-				// eventListId.current = push({
-				// 	state: { isOpen: true, height: "full" },
-				// 	slots: {
-				// 		upperLeftSlot: (
-				// 			<TouchableOpacity
-				// 				style={styles.addButton}
-				// 				onPress={() => openCreateNewEvent(selected)}
-				// 			>
-				// 				<Text style={styles.addButtonText}>+</Text>
-				// 			</TouchableOpacity>
-				// 		),
-				// 	},
-				// 	props: {
-				// 		events: eventsForSelectedDay,
-				// 	},
-				// 	component: EventList,
-				// });
-			} else {
-				// No events for selected date
-				const props = {
-					calendar: calendarId,
-					startDatetime: selected,
-				};
-				setBottomSheetContent(<EventPanelCrud {...props} />);
-			}
-			bottomSheetRef.current?.expand();
-		}
-	}, [calendarId, selected, openCreateNewEvent]);
+	const showEventList = (
+		day: string, // YYYY-MM-DD
+	) => {
+		const eventsForDay = findEventsForDay(events, day);
+		setBottomSheetContent(
+			<EventListPanel
+				events={eventsForDay}
+				calendar={calendarId}
+				currentDay={day}
+				setBottomSheetContent={setBottomSheetContent}
+			/>,
+		);
+		bottomSheetRef.current?.present();
+	};
 
 	const markedDates = useMemo(
 		() => eventsToMarkedDates(events, colors),
 		[events, colors],
 	);
+
+	const onDayPress = useCallback(
+		(day: DateData) => {
+			if (selected === day.dateString) {
+				showEventList(day.dateString);
+			} else {
+				setSelected(day.dateString as `${number}-${number}-${number}`);
+			}
+		},
+		[selected],
+	);
+
+	const markedDatesWithSelected = selected
+		? {
+				[selected]: selectedStyle,
+				...markedDates,
+			}
+		: markedDates;
+
+	const avatarUri = pb.authStore.record
+		? pb.files.getURL(pb.authStore.record, pb.authStore.record.avatar, {
+				thumb: "100x100",
+			})
+		: null;
 
 	if (loading) {
 		return (
@@ -218,49 +229,48 @@ export default function CalendarScreen() {
 
 	if (!calendarFromBackend) {
 		return (
-			<View style={styles.container}>
-				<Header style={styles.header}>
-					<Link href="/" push>
-						{pb.authStore.model?.avatar ? (
-							<Image source={{ uri: pb.authStore.model.avatar }} />
-						) : (
-							<TabBarIcon name="person-circle" style={styles.icon} />
-						)}
-					</Link>
-				</Header>
-				<Text>No calendar for this ID {calendarId}</Text>
-				<Text>{JSON.stringify(error)}</Text>
-			</View>
+			<SafeAreaView style={globalstyles.safeArea}>
+				<StatusBar style="dark" />
+				<View style={styles.container}>
+					<Header style={styles.header}>
+						<Link href="/" push>
+							<Avatar size="small" uri={avatarUri} />
+						</Link>
+					</Header>
+					<Text>No calendar for this ID {calendarId}</Text>
+				</View>
+			</SafeAreaView>
 		);
 	}
 
 	return (
 		<SafeAreaView style={globalstyles.safeArea}>
+			<StatusBar style="dark" />
 			<View style={styles.container}>
 				<Header style={styles.header}>
 					<Link href="/" push>
-						{pb.authStore.model?.avatar ? (
-							<Image source={{ uri: pb.authStore.model.avatar }} />
-						) : (
-							<TabBarIcon name="person-circle" style={styles.icon} />
-						)}
+						<Avatar size="small" uri={avatarUri} />
 					</Link>
 					<Text style={styles.headerText}>{calendarFromBackend?.name}</Text>
 				</Header>
-				<Calendar
+
+				<CalendarList
 					firstDay={1}
 					markingType="multi-period"
-					markedDates={markedDates}
-					selected={selected}
-					onDayPress={(day: DateData) => {
-						setSelected(day.dateString as `${number}-${number}-${number}`);
+					markedDates={markedDatesWithSelected}
+					onDayPress={onDayPress}
+					onDayLongPress={(day: DateData) => {
+						openCreateNewEvent(day.dateString);
 					}}
 				/>
-				<GestureHandlerRootView>
-					<BottomSheetModal ref={bottomSheetRef}>
-						<BottomSheetView>{bottomSheetContent}</BottomSheetView>
-					</BottomSheetModal>
-				</GestureHandlerRootView>
+
+				<BottomSheetModal
+					ref={bottomSheetRef}
+					style={bottomsheetStyles.container}
+					enablePanDownToClose
+				>
+					{bottomSheetContent}
+				</BottomSheetModal>
 			</View>
 		</SafeAreaView>
 	);
@@ -300,8 +310,5 @@ const styles = StyleSheet.create({
 	addButtonText: {
 		fontSize: 24,
 		color: "#000000",
-	},
-	icon: {
-		fontSize: 24,
 	},
 });

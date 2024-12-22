@@ -6,6 +6,7 @@ import { pb } from "@/api/pocketbase";
 import { CopyableText } from "./CopyableText";
 import Button from "react-native-ui-lib/button";
 import { BottomSheetTextInput } from "@gorhom/bottom-sheet";
+import { bottomsheetStyles } from "@/utils/bottomsheetStyles";
 
 type Props = {
 	calendar: CalendarsResponse<{ users: UsersResponse[] }>;
@@ -18,13 +19,13 @@ export const CreateInvitationPanel = ({ calendar }: Props) => {
 
 	const inviteNewUser = useCallback(async () => {
 		try {
-			if (!pb.authStore.model?.id) {
+			if (!pb.authStore.record?.id) {
 				throw new Error("User not logged in");
 			}
 			const data = {
 				invitee_email: inviteeEmail,
 				calendar: calendar.id,
-				inviter: pb.authStore.model.id,
+				inviter: pb.authStore.record.id,
 			};
 
 			const response = await pb.collection("invitations").create(data);
@@ -40,7 +41,7 @@ export const CreateInvitationPanel = ({ calendar }: Props) => {
 	}, [inviteeEmail]);
 
 	return (
-		<View style={styles.container}>
+		<View style={bottomsheetStyles.container}>
 			<Text style={styles.title}>
 				Invite people to <Text style={styles.italic}>{calendar.name}</Text>
 			</Text>
@@ -48,7 +49,7 @@ export const CreateInvitationPanel = ({ calendar }: Props) => {
 				<BottomSheetTextInput
 					style={styles.input}
 					placeholder="Email of the person you want to invite"
-					placeholderTextColor="#ccc"
+					placeholderTextColor="#999"
 					value={inviteeEmail}
 					onChangeText={setInviteeEmail}
 					keyboardType="email-address"
@@ -77,9 +78,6 @@ export const CreateInvitationPanel = ({ calendar }: Props) => {
 };
 
 const styles = StyleSheet.create({
-	container: {
-		paddingBottom: 16,
-	},
 	title: {
 		fontSize: 18,
 		fontWeight: "bold",

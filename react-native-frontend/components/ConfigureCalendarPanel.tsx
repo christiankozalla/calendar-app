@@ -4,6 +4,7 @@ import {
 	ActivityIndicator,
 	StyleSheet,
 	TouchableOpacity,
+	Alert,
 } from "react-native";
 import {
 	Collections,
@@ -21,7 +22,10 @@ import Button from "react-native-ui-lib/button";
 import {
 	BottomSheetTextInput,
 	BottomSheetFlatList,
+	useBottomSheetModal,
+	BottomSheetView,
 } from "@gorhom/bottom-sheet";
+import { bottomsheetStyles } from "@/utils/bottomsheetStyles";
 
 type Props = {
 	calendarId: string;
@@ -50,12 +54,15 @@ const deleteCalendar = async (calendarId: string) => {
 export const ConfigureCalendarPanel = ({ calendarId }: Props) => {
 	const [calendars, setCalendars] = useRecoilState(CalendarsState);
 	const [loading, setLoading] = useState(false);
-	const [calendar, setCalendar] = useState<Nullable<
-		CalendarsResponse<{
-			users: UsersResponse[];
-		}>
-	>>(null);
-	// const { dismiss } = useBottomSheetModal();
+	const [calendar, setCalendar] =
+		useState<
+			Nullable<
+				CalendarsResponse<{
+					users: UsersResponse[];
+				}>
+			>
+		>(null);
+	const { dismiss } = useBottomSheetModal();
 
 	useEffect(() => {
 		(async () => {
@@ -104,6 +111,30 @@ export const ConfigureCalendarPanel = ({ calendarId }: Props) => {
 		}
 	}, [calendar]);
 
+	const deleteCalendarHandler = useCallback(() => {
+		Alert.alert(
+			"Confirm Delete",
+			`Are you sure you want to delete 
+			${calendar?.name || "this calendar"}?`,
+			[
+				{
+					text: "Cancel",
+					style: "cancel",
+				},
+				{
+					text: "Delete",
+					onPress: () =>
+						deleteCalendar(calendarId).then(() => {
+							setCalendars((prev) => prev.filter((c) => c.id !== calendarId));
+							dismiss();
+						}),
+					style: "destructive",
+				},
+			],
+			{ cancelable: true },
+		);
+	}, [calendar]);
+
 	if (loading) {
 		return <ActivityIndicator />;
 	}
@@ -114,83 +145,82 @@ export const ConfigureCalendarPanel = ({ calendarId }: Props) => {
 
 	const owner = calendar.expand?.users.find((u) => u.id === calendar.owner);
 
-
 	return (
-		<View style={styles.container}>
-			<View style={styles.header}>
-				<BottomSheetTextInput
-					style={styles.title}
-					value={calendar?.name}
-					onChangeText={(text) => {
-						setCalendar((prev) => (prev ? { ...prev, name: text } : null));
-					}}
-					autoCorrect={false}
-					onBlur={updateCalendar}
+		<BottomSheetView
+			style={[
+				bottomsheetStyles.paddingTop,
+				bottomsheetStyles.paddingHorizontal,
+			]}
+		>
+			<View style={styles.container}>
+				<View style={styles.header}>
+					<BottomSheetTextInput
+						style={styles.title}
+						value={calendar?.name}
+						onChangeText={(text) => {
+							setCalendar((prev) => (prev ? { ...prev, name: text } : null));
+						}}
+						autoCorrect={false}
+						onBlur={updateCalendar}
+					/>
+				</View>
+				{owner && (
+					<>
+						<Text style={styles.owner}>
+							Created by{" "}
+							{owner.id === pb.authStore.record?.id
+								? "you"
+								: owner?.name || "user without name"}
+						</Text>
+
+						{(calendar.expand?.users || []).filter((u) => u.id !== owner?.id)
+							.length > 0 && (
+							<BottomSheetFlatList
+								keyExtractor={(u) => u.id}
+								data={calendar?.expand?.users.filter((u) => u.id !== owner?.id)}
+								renderItem={({ item: u }: { item: UsersResponse }) => (
+									<View style={styles.userListItem}>
+										<Text style={styles.userName}>{u.name}</Text>
+										{owner && owner.id !== u.id && (
+											<TouchableOpacity
+												onPress={() => {
+													setLoading(true);
+													removeUserFromCalendar(calendar, u.id)
+														.then((updatedCalendar) => {
+															setCalendar(updatedCalendar);
+														})
+														.finally(() => {
+															setLoading(false);
+														});
+												}}
+											>
+												<TabBarIcon name="remove-circle" style={styles.icon} />
+											</TouchableOpacity>
+										)}
+									</View>
+								)}
+							/>
+						)}
+					</>
+				)}
+
+				<CreateInvitationPanel calendar={calendar} />
+
+				<Button
+					label="Delete Calendar"
+					backgroundColor="#900"
+					onPress={deleteCalendarHandler}
 				/>
 			</View>
-			{owner && (
-				<>
-					<Text style={styles.owner}>
-						Created by{" "}
-						{owner.id === pb.authStore.model?.id
-							? "you"
-							: owner?.name || "user without name"}
-					</Text>
-
-					{(calendar.expand?.users || []).filter((u) => u.id !== owner?.id)
-						.length > 0 && (
-						<BottomSheetFlatList
-							keyExtractor={(u) => u.id}
-							data={calendar?.expand?.users.filter((u) => u.id !== owner?.id)}
-							renderItem={({ item: u }: { item: UsersResponse }) => (
-								<View style={styles.userListItem}>
-									<Text style={styles.userName}>{u.name}</Text>
-									{owner && owner.id !== u.id && (
-										<TouchableOpacity
-											onPress={() => {
-												setLoading(true);
-												removeUserFromCalendar(calendar, u.id)
-													.then((updatedCalendar) => {
-														setCalendar(updatedCalendar);
-													})
-													.finally(() => {
-														setLoading(false);
-													});
-											}}
-										>
-											<TabBarIcon name="remove-circle" style={styles.icon} />
-										</TouchableOpacity>
-									)}
-								</View>
-							)}
-						/>
-					)}
-				</>
-			)}
-
-			<CreateInvitationPanel calendar={calendar} />
-
-			{/* TODO: Introduce Confirmation-Step before deleting */}
-			<Button
-				label="Delete Calendar"
-				backgroundColor="#900"
-				onPress={() =>
-					deleteCalendar(calendarId).then(() => {
-						setCalendars((prev) => prev.filter((c) => c.id !== calendarId));
-						// dismiss();
-					})
-				}
-			/>
-		</View>
+		</BottomSheetView>
 	);
 };
 
 const styles = StyleSheet.create({
 	container: {
-		flex: 1,
 		gap: 4,
-		height: "100%",
 		marginBottom: 16,
+		paddingBottom: 36,
 	},
 	header: {
 		flexDirection: "row",

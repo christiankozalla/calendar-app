@@ -7,8 +7,9 @@ import { useSetRecoilState } from "recoil";
 import { CalendarsState } from "@/store/Calendars";
 import Button from "react-native-ui-lib/button";
 import { updateCalendarState } from "@/utils/calendar";
-import { BottomSheetTextInput } from "@gorhom/bottom-sheet";
+import { BottomSheetTextInput, BottomSheetView } from "@gorhom/bottom-sheet";
 import { generateUUID } from "@/utils/uuid";
+import { bottomsheetStyles } from "@/utils/bottomsheetStyles";
 
 type Props = {
 	onSuccess: ReturnType<typeof Promise.withResolvers<Response>>["resolve"];
@@ -31,8 +32,8 @@ export const CreateCalendarPanel = ({ onSuccess, onFailure }: Props) => {
 					{
 						id,
 						name,
-						owner: pb.authStore.model?.id,
-						users: [pb.authStore.model?.id],
+						owner: pb.authStore.record?.id,
+						users: [pb.authStore.record?.id],
 					},
 					{
 						expand: "users",
@@ -49,22 +50,29 @@ export const CreateCalendarPanel = ({ onSuccess, onFailure }: Props) => {
 	};
 
 	return (
-		<View style={styles.container}>
-			<Text style={styles.title}>Create Calendar</Text>
-			<BottomSheetTextInput
-				style={styles.input}
-				value={name}
-				onChangeText={setName}
-				placeholder="Calendar name"
-				placeholderTextColor="#666"
-			/>
-			<Button
-				label="Create"
-				onPress={createCalendar}
-				disabled={!name.trim()}
-				backgroundColor="#006600"
-			/>
-		</View>
+		<BottomSheetView
+			style={[
+				bottomsheetStyles.paddingTop,
+				bottomsheetStyles.paddingHorizontal,
+			]}
+		>
+			<View style={styles.container}>
+				<Text style={styles.title}>Create Calendar</Text>
+				<BottomSheetTextInput
+					style={styles.input}
+					value={name}
+					onChangeText={setName}
+					placeholder="Calendar name"
+					placeholderTextColor="#999"
+				/>
+				<Button
+					label="Create"
+					onPress={createCalendar}
+					disabled={!name.trim()}
+					backgroundColor="#006600"
+				/>
+			</View>
+		</BottomSheetView>
 	);
 };
 

@@ -92,7 +92,7 @@ export const HomeScreen = () => {
 		pb.collection(Collections.Calendars)
 			.getFullList({
 				filter: pb.filter("users ~ {:userId}", {
-					userId: pb.authStore.model?.id,
+					userId: pb.authStore.record?.id,
 				}),
 			})
 			.then((r) => {
@@ -103,7 +103,7 @@ export const HomeScreen = () => {
 	return (
 		<View style={styles.container}>
 			<Text style={styles.heading}>
-				Welcome {pb.authStore.model?.name ?? "friend"}!
+				Welcome {pb.authStore.record?.name ?? "friend"}!
 			</Text>
 			<Text style={styles.subheading}>Your Calendars</Text>
 

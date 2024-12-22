@@ -1,5 +1,9 @@
 #!/bin/bash
 
+echo "DEPRECATED! Because target VPS does not exist anymore...!
+
+exit 1
+
 set -e
 
 echo -e "Deleting 'dist' directory...\n"

@@ -14,7 +14,7 @@ export const ColorsState = atom<Colors>({
 					setSelf(
 						colorsResponse.reduce(
 							(colors, current) => {
-								colors[current.id] = { hex: current.hex, name: current.name };
+								colors[current.id] = { id: current.id, hex: current.hex, name: current.name };
 								return colors;
 							},
 							{} as { [id: string]: ColorsRecord },

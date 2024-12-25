@@ -14,7 +14,6 @@ export const SlidingDrawerManager = () => {
 	const state = useRecoilValue(SlidingDrawerState);
 	const { update } = useSlidingDrawer();
 
-	// biome-ignore lint: update function is stateless
 	const onSwipe = useCallback((directions: OnSwipeParams) => {
 		const swipingDirections = swipingDirection(directions);
 		if (swipingDirections.includes(Direction.DOWN)) {
@@ -26,7 +25,6 @@ export const SlidingDrawerManager = () => {
 			update({ ...slide, state: { ...slide.state, isOpen: true } });
 		}
 	}, []);
-	// biome-ignore lint: update function is stateless
 	const closeAll = useCallback(() => {
 		for (const slide of state) {
 			update({ ...slide, state: { ...slide.state, isOpen: false } });

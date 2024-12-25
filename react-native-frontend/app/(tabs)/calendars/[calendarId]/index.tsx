@@ -35,7 +35,6 @@ const findEventsForDay = (
 	events: EventWithPersons[],
 	day: Date | string,
 ) => {
-	// biome-ignore lint: param reassign is not confusing, this is a shallow helper func
 	day = typeof day === "string" ? new Date(day) : day;
 	return events?.filter((e) => {
 		return !e.endDatetime
@@ -105,7 +104,7 @@ export default function CalendarScreen() {
 	useEffect(() => {
 		const subscribeToEvents = async () => {
 			if (calendarId) {
-				const unsubscribe = pb.collection("events").subscribe<EventWithPersons>(
+				const unsubscribe = await pb.collection("events").subscribe<EventWithPersons>(
 					"*",
 					(collection) => {
 						switch (collection.action) {
@@ -155,11 +154,6 @@ export default function CalendarScreen() {
 		};
 	}, [calendarId]);
 
-	// useEffect(() => {
-	// 	// open bottom sheet every time its content changes
-	// 	bottomSheetRef.current?.present();
-	// }, [bottomSheetContent])
-
 	const openCreateNewEvent = useCallback(
 		(date: string) => {
 			const props = {
@@ -203,7 +197,7 @@ export default function CalendarScreen() {
 				setSelected(day.dateString as `${number}-${number}-${number}`);
 			}
 		},
-		[selected],
+		[events, selected],
 	);
 
 	const markedDatesWithSelected = selected

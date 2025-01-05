@@ -16,9 +16,10 @@ The app is currently running on a VPS behind a Caddy server reverse-proxy that r
 
 ```
     -- ~/projects/calendar-app
-        -- production # contains the `its` binary
-            -- pb_public # static assets (e.g. Vue app) being served by PocketBase
+        -- production
+            -- pb_public # static assets
             -- pb_data  # SQLite database(s) and user file uploads
+        - calendar-app # Pocketbase server binary
         - standard.log # logs from stdout of the application
         - errors.log # logs from stderr of the application
 ```

@@ -50,7 +50,7 @@ export const CreateInvitationPanel = ({ calendars }: Props) => {
 			if (err instanceof ClientResponseError) {
 				console.warn("error", err.data);
 			} else {
-				console.error(err);
+				console.error("CreateInvitationPanel", err);
 			}
 		}
 	};

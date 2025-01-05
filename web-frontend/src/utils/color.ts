@@ -1,14 +1,13 @@
 export const getTextColorBasedOnBg = (hex: string) => {
 	// Ensure the hex code is in the correct format
 	if (hex.charAt(0) === "#") {
-		// biome-ignore lint: re-assigning allowed in helper func
 		hex = hex.slice(1);
 	}
 
 	// Convert 3-digit hex to 6-digit hex
-	// if (hex.length === 3) {
-	//   hex = hex.split('').map(char => char + char).join('');
-	// }
+	if (hex.length === 3) {
+	  hex = hex.split('').map(char => char + char).join('');
+	}
 
 	const r = Number.parseInt(hex.slice(0, 2), 16);
 	const g = Number.parseInt(hex.slice(2, 4), 16);
@@ -25,7 +24,6 @@ export const getTextColorBasedOnBg = (hex: string) => {
 
 // Helper function to convert RGB values to a linear scale
 const getRelativeChannel = (value: number) => {
-	// biome-ignore lint: re-assigning allowed in helper func
 	value /= 255;
 	return value <= 0.03928
 		? value / 12.92

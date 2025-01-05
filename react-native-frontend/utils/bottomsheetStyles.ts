@@ -18,6 +18,9 @@ export const bottomsheetStyles = StyleSheet.create({
     paddingHorizontal: {
         paddingHorizontal: 16,
     },
+    paddingBottom: {
+        paddingBottom: 24,
+    },
     marginHorizontal: {
         marginHorizontal: 16
     }

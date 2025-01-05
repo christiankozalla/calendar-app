@@ -7,15 +7,29 @@ const getAuthStateFromPocketBaseSDK: AtomEffect<boolean> = ({
 	trigger,
 	setSelf,
 }) => {
+	const unsubscribe = pb.authStore.onChange((token) => {
+		setSelf(Boolean(token));
+	});
+
+	pb.authStore.clear()
+
 	if (trigger === "get") {
 		if (pb.authStore.isValid) {
-			pb.collection("users").authRefresh();
-			setSelf(true);
+			pb.collection("users").authRefresh().then(() => {
+				setSelf(true);
+			}).catch(() => {
+				pb.authStore.clear();
+				setSelf(false);
+			});
 		} else {
 			pb.authStore.clear();
 			setSelf(false);
 		}
 	}
+
+	return () => {
+		unsubscribe();
+	};
 };
 
 export const AuthState = atom({
@@ -28,6 +42,10 @@ const getUserFromPocketBaseSDK: AtomEffect<UsersResponse | null> = ({
 	trigger,
 	setSelf,
 }) => {
+	const unsubscribe = pb.authStore.onChange((_, model) => {
+		setSelf(model as UsersResponse);
+	});
+
 	if (trigger === "get") {
 		if (pb.authStore.isValid) {
 			setSelf(pb.authStore.record as UsersResponse);
@@ -35,10 +53,10 @@ const getUserFromPocketBaseSDK: AtomEffect<UsersResponse | null> = ({
 			pb.authStore.clear();
 			setSelf(null);
 		}
+	}
 
-		pb.authStore.onChange((_, model) => {
-			setSelf(model as UsersResponse);
-		});
+	return () => {
+		unsubscribe();
 	}
 };
 

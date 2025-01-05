@@ -18,7 +18,6 @@ import { useRecoilState } from "recoil";
 import { CalendarsState } from "@/store/Calendars";
 import { CreateInvitationPanel } from "./CreateInvitationPanel";
 import { updateCalendarState } from "@/utils/calendar";
-import Button from "react-native-ui-lib/button";
 import {
 	BottomSheetTextInput,
 	BottomSheetFlatList,
@@ -82,7 +81,7 @@ export const ConfigureCalendarPanel = ({ calendarId }: Props) => {
 					setCalendars((prev) => updateCalendarState(prev, calendar));
 				}
 			} catch (err) {
-				console.error(err);
+				console.error("ConfigureCalendarPanel", err);
 			} finally {
 				setLoading(false);
 			}
@@ -105,7 +104,7 @@ export const ConfigureCalendarPanel = ({ calendarId }: Props) => {
 			setCalendar(updatedCalendar);
 			setCalendars((prev) => updateCalendarState(prev, updatedCalendar));
 		} catch (err) {
-			console.error(err);
+			console.error("ConfigureCalendarPanel", err);
 		} finally {
 			setLoading(false);
 		}
@@ -163,6 +162,9 @@ export const ConfigureCalendarPanel = ({ calendarId }: Props) => {
 						autoCorrect={false}
 						onBlur={updateCalendar}
 					/>
+					<TouchableOpacity onPress={deleteCalendarHandler}>
+						<TabBarIcon name="trash-outline" style={styles.icon} />
+					</TouchableOpacity>
 				</View>
 				{owner && (
 					<>
@@ -205,12 +207,6 @@ export const ConfigureCalendarPanel = ({ calendarId }: Props) => {
 				)}
 
 				<CreateInvitationPanel calendar={calendar} />
-
-				<Button
-					label="Delete Calendar"
-					backgroundColor="#900"
-					onPress={deleteCalendarHandler}
-				/>
 			</View>
 		</BottomSheetView>
 	);

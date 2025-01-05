@@ -18,7 +18,7 @@ import {
 import type { UsersResponse } from "@/api/pocketbase-types";
 import { useRecoilValue } from "recoil";
 import { UserState } from "@/store/Authentication";
-import Button from "react-native-ui-lib/button";
+import { Button } from "./Button";
 import { router } from "expo-router";
 import { ImageUploadButton } from "./ImageUploadButton";
 import { generateUUID } from "@/utils/uuid";

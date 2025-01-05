@@ -20,3 +20,39 @@ export const roundToNearestHour = (date: Date | string, offset: number): Date =>
 
 	return result;
 }
+
+export const mergeDates = (dateInput: Date, timeInput: Date): Date => {
+	// Extract day components from `dateWithDay`
+	const year = dateInput.getFullYear();
+	const month = dateInput.getMonth();
+	const day = dateInput.getDate();
+
+	// Extract time components from `dateWithTime`
+	const hours = timeInput.getHours();
+	const minutes = timeInput.getMinutes();
+	const seconds = timeInput.getSeconds();
+
+	return new Date(year, month, day, hours, minutes, seconds);
+};
+
+export const toDateString = (date: Date | string): string => {
+	const theDate = parseDate(date);
+	if (!theDate) return "";
+	return theDate.toLocaleDateString(undefined, { year: "numeric", month: "2-digit", day: "numeric", weekday: "short" });
+};
+
+export const toTimeString = (date: Date | string): string => {
+	const theDate = parseDate(date);
+	if (!theDate) return "";
+	return theDate.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" });
+};
+
+const parseDate = (date: Date | string): Date | null => {
+	try {
+		date = typeof date === "string" ? new Date(date) : date;
+		return date;
+	} catch (error) {
+		console.log("not a date", date);
+		return null;
+	}
+}

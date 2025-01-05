@@ -10,4 +10,4 @@ const store = new AsyncAuthStore({
     initial: AsyncStorage.getItem('pb_auth'),
 });
 
-export const pb = new PocketBase("http://192.168.1.126:8090", store) as TypedPocketBase;
+export const pb = new PocketBase("http://192.168.178.21:8090", store) as TypedPocketBase;

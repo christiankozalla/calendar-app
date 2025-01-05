@@ -1,7 +1,6 @@
 import React, {
 	useState,
 	useCallback,
-	useEffect,
 	useRef,
 	type SetStateAction,
 	type Dispatch,
@@ -13,20 +12,8 @@ import {
 	Dimensions,
 	Keyboard,
 	TouchableWithoutFeedback,
+	Alert,
 } from "react-native";
-import { pb } from "@/api/pocketbase";
-import type { EventsResponse, PersonsResponse } from "@/api/pocketbase-types";
-import { AlertDialog } from "./AlertDialog";
-import { useRecoilValue } from "recoil";
-import { PersonsState } from "@/store/Persons";
-import { ColorsState } from "@/store/Colors";
-import { ColorPicker } from "./ColorPicker";
-import { CreatePerson } from "./CreatePerson";
-import { TabBarIcon } from "./navigation/TabBarIcon";
-import Button from "react-native-ui-lib/button";
-import DateTimePicker from "@react-native-community/datetimepicker";
-import { roundToNearestHour } from "@/utils/date";
-import { FullWidthGreyBorderButton } from "./FullWidthGreyBorderButton";
 import {
 	BottomSheetModal,
 	BottomSheetModalProvider,
@@ -35,8 +22,21 @@ import {
 	useBottomSheetModal,
 	TouchableOpacity,
 } from "@gorhom/bottom-sheet";
+import { pb } from "@/api/pocketbase";
+import type { EventsResponse, PersonsResponse } from "@/api/pocketbase-types";
+import { useRecoilValue } from "recoil";
+import { PersonsState } from "@/store/Persons";
+import { ColorsState } from "@/store/Colors";
+import { ColorPicker } from "./ColorPicker";
+import { CreatePerson } from "./CreatePerson";
+import { TabBarIcon } from "./navigation/TabBarIcon";
+import DateTimePicker from "@react-native-community/datetimepicker";
+import { roundToNearestHour, mergeDates } from "@/utils/date";
+import { FullWidthGreyBorderButton } from "./FullWidthGreyBorderButton";
 import { bottomsheetStyles } from "@/utils/bottomsheetStyles";
 import Checkbox from "expo-checkbox";
+import { typography } from "@/utils/typography";
+import { Button } from "./Button";
 
 type Props = {
 	persons?: PersonsResponse[];
@@ -52,24 +52,6 @@ type Props = {
 		| "color"
 	>
 >;
-
-const deleteEvent = (id: string) => {
-	pb.collection("events").delete(id);
-};
-
-const mergeDates = (dateInput: Date, timeInput: Date): Date => {
-	// Extract day components from `dateWithDay`
-	const year = dateInput.getFullYear();
-	const month = dateInput.getMonth();
-	const day = dateInput.getDate();
-
-	// Extract time components from `dateWithTime`
-	const hours = timeInput.getHours();
-	const minutes = timeInput.getMinutes();
-	const seconds = timeInput.getSeconds();
-
-	return new Date(year, month, day, hours, minutes, seconds);
-};
 
 export const EventCreateUpdatePanel = ({
 	id,
@@ -110,7 +92,15 @@ export const EventCreateUpdatePanel = ({
 	const colors = useRecoilValue(ColorsState);
 
 	const handleSubmit = useCallback(async () => {
-		console.log("handle submit");
+		const startDateTime = mergeDates(startDate, startTime);
+		const endDateTime = mergeDates(endDate, endTime);
+
+		if (endDateTime < startDateTime) {
+			// Show an Alert dialog to the user
+			Alert.alert("End date cannot be before start date");
+			return;
+		}
+
 		try {
 			const owner = pb.authStore.record?.id;
 			const eventData = {
@@ -118,8 +108,8 @@ export const EventCreateUpdatePanel = ({
 				owner,
 				title: eventTitle,
 				description: eventDescription,
-				startDatetime: mergeDates(startDate, startTime).toISOString(),
-				endDatetime: mergeDates(endDate, endDate).toISOString(),
+				startDatetime: startDateTime.toISOString(),
+				endDatetime: endDateTime.toISOString(),
 				persons: selectedPersons?.map((p) => p.id).filter((id) => id !== owner), // the owner is a User, not a Person, so its ID cannot be found in the persons table
 				color: selectedColor,
 			};
@@ -170,23 +160,9 @@ export const EventCreateUpdatePanel = ({
 	return (
 		<TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
 			<BottomSheetView style={styles.bottomsheetContent}>
-				<View
-					style={[
-						{
-							flexDirection: "row",
-							justifyContent: "space-between",
-							marginBottom: 16,
-						},
-						bottomsheetStyles.marginHorizontal,
-					]}
-				>
+				<View style={[styles.header, bottomsheetStyles.marginHorizontal]}>
 					<TouchableOpacity
-						style={{
-							paddingLeft: 0,
-							paddingVertical: 12,
-							paddingRight: 24,
-							justifyContent: "center",
-						}}
+						style={styles.iconButton}
 						onPress={() => {
 							bottomSheetModal.dismiss();
 						}}
@@ -197,48 +173,9 @@ export const EventCreateUpdatePanel = ({
 						size="small"
 						label={id ? "Update Event" : "Create Event"}
 						onPress={handleSubmit}
+						style={{ borderColor: "rebeccapurple" }}
 					/>
 				</View>
-
-				{/* TODO: Move the "Delete Event" Feature to Event Detail Context ... Menu - as for the headline, we dont need a headline */}
-				{/* <View
-				style={[
-					bottomsheetStyles.paddingTop,
-					bottomsheetStyles.paddingHorizontal,
-					styles.header,
-				]}
-					>	
-				<Text style={styles.title}>
-					{id ? "Update Event" : "Create New Event"}
-				</Text>
-				{id && (
-					<AlertDialog
-						triggerElement={
-							<TouchableOpacity
-								style={styles.deleteButton}
-								onPress={() => setIsAlertDialogVisible(true)}
-							>
-								<TabBarIcon name="trash" style={styles.icon} />
-								<Text>Delete</Text>
-							</TouchableOpacity>
-						}
-						title="Delete Event"
-						descriptionElement={
-							<Text>
-								Do you really want to delete this event?
-								{"\n"}
-								<Text style={styles.strong}>{title}</Text>
-							</Text>
-						}
-						actionText="Delete"
-						action={() => {
-							pb.collection("events").delete(id);
-						}}
-						isVisible={isAlertDialogVisible}
-						onClose={() => {}}
-					/>
-				)}
-			</View> */}
 
 				<BottomSheetTextInput
 					style={[styles.input, bottomsheetStyles.marginHorizontal]}
@@ -335,11 +272,10 @@ export const EventCreateUpdatePanel = ({
 				<BottomSheetModalProvider>
 					<BottomSheetModal
 						ref={personsModalRef}
-						snapPoints={["50%", "90%"]}
-						enableDynamicSizing={false}
 						style={bottomsheetStyles.container}
 					>
-						<BottomSheetView>
+						{/* paddingBottom is some sort of hack to make dynamic sizing of the BottomSheet work - i.e. show CreatePerson component, too */}
+						<BottomSheetView style={{ paddingBottom: 104 }}>
 							{[
 								pb.authStore.record as unknown as { id: string; name: string },
 								...allPersons,
@@ -368,6 +304,15 @@ export const EventCreateUpdatePanel = ({
 								);
 							})}
 
+							<Text
+								style={[
+									bottomsheetStyles.paddingHorizontal,
+									{ marginTop: 18, marginBottom: 8 },
+									typography.h3,
+								]}
+							>
+								Create a new person
+							</Text>
 							<CreatePerson calendar={calendar} />
 						</BottomSheetView>
 					</BottomSheetModal>
@@ -387,6 +332,12 @@ const styles = StyleSheet.create({
 		justifyContent: "space-between",
 		alignItems: "center",
 		marginBottom: 16,
+	},
+	iconButton: {
+		paddingLeft: 0,
+		paddingVertical: 12,
+		paddingRight: 24,
+		justifyContent: "center",
 	},
 	title: {
 		fontSize: 18,

@@ -5,7 +5,7 @@ import { pb } from "@/api/pocketbase";
 import { Collections, type CalendarsResponse } from "@/api/pocketbase-types";
 import { useSetRecoilState } from "recoil";
 import { CalendarsState } from "@/store/Calendars";
-import Button from "react-native-ui-lib/button";
+import { Button } from "@/components/Button";
 import { updateCalendarState } from "@/utils/calendar";
 import { BottomSheetTextInput, BottomSheetView } from "@gorhom/bottom-sheet";
 import { generateUUID } from "@/utils/uuid";
@@ -44,7 +44,7 @@ export const CreateCalendarPanel = ({ onSuccess, onFailure }: Props) => {
 			setName("");
 			onSuccess(newCalendar);
 		} catch (err) {
-			console.error(err);
+			console.error("CreateCalendarPanel",err);
 			onFailure(err);
 		}
 	};
@@ -54,6 +54,7 @@ export const CreateCalendarPanel = ({ onSuccess, onFailure }: Props) => {
 			style={[
 				bottomsheetStyles.paddingTop,
 				bottomsheetStyles.paddingHorizontal,
+				bottomsheetStyles.paddingBottom,
 			]}
 		>
 			<View style={styles.container}>
@@ -69,7 +70,11 @@ export const CreateCalendarPanel = ({ onSuccess, onFailure }: Props) => {
 					label="Create"
 					onPress={createCalendar}
 					disabled={!name.trim()}
-					backgroundColor="#006600"
+					textColor="white"
+					style={{
+						backgroundColor: "#006600",
+						borderWidth: 0,
+					}}
 				/>
 			</View>
 		</BottomSheetView>

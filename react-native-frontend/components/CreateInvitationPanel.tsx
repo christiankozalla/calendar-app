@@ -4,7 +4,7 @@ import { createURL } from "expo-linking";
 import type { CalendarsResponse, UsersResponse } from "@/api/pocketbase-types";
 import { pb } from "@/api/pocketbase";
 import { CopyableText } from "./CopyableText";
-import Button from "react-native-ui-lib/button";
+import { Button } from "./Button";
 import { BottomSheetTextInput } from "@gorhom/bottom-sheet";
 import { bottomsheetStyles } from "@/utils/bottomsheetStyles";
 
@@ -28,11 +28,11 @@ export const CreateInvitationPanel = ({ calendar }: Props) => {
 				inviter: pb.authStore.record.id,
 			};
 
-			const response = await pb.collection("invitations").create(data);
+			const {token} = await pb.collection("invitations").create(data);
 
-			// const newInvitationLink = `${location.origin}/login-signup?token=${response.token}`;
+			// const newInvitationLink = `${location.origin}/login-signup?token=${token}`;
 			const newInvitationLink = createURL("login-signup", {
-				queryParams: { token: response.token },
+				queryParams: { token },
 			});
 			setInvitationLink(newInvitationLink);
 		} catch (err) {
@@ -58,7 +58,6 @@ export const CreateInvitationPanel = ({ calendar }: Props) => {
 				<Button
 					label="Generate Invitation Link"
 					onPress={inviteNewUser}
-					primary
 					disabled={!inviteeEmail.trim()}
 				/>
 			</View>

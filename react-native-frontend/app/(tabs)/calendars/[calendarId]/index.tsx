@@ -93,7 +93,7 @@ export default function CalendarScreen() {
 					}
 				})
 				.catch((err) => {
-					console.error(err);
+					console.error("CalendarScreen", err);
 				})
 				.finally(() => {
 					setLoading(false);

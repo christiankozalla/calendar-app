@@ -1,5 +1,11 @@
 import type { Dispatch, ReactNode, SetStateAction } from "react";
-import { View, Text, FlatList, StyleSheet, Dimensions } from "react-native";
+import {
+	View,
+	Text,
+	FlatList,
+	StyleSheet,
+	Dimensions,
+} from "react-native";
 import type { EventsResponse, PersonsResponse } from "@/api/pocketbase-types";
 import { TabBarIcon } from "./navigation/TabBarIcon";
 import {
@@ -10,7 +16,8 @@ import {
 import { bottomsheetStyles } from "@/utils/bottomsheetStyles";
 import { EventCreateUpdatePanel } from "./EventCreateUpdatePanel";
 import { setDateWithCurrentTime } from "@/utils/date";
-import Button from "react-native-ui-lib/button";
+import { Button } from "./Button";
+import { EventDetailsPanel } from "./EventDetailsPanel";
 
 type Props = {
 	events: EventsResponse<{ persons: PersonsResponse[] }>[];
@@ -30,21 +37,28 @@ export const EventListPanel = ({
 	const renderEvent = ({
 		item: event,
 	}: { item: EventsResponse<{ persons: PersonsResponse[] }> }) => (
-		<View style={styles.card}>
+		<TouchableOpacity
+			style={styles.card}
+			onPress={() => {
+				setBottomSheetContent?.(
+					<EventDetailsPanel {...event} persons={event.expand?.persons} />,
+				);
+			}}
+		>
 			<View style={styles.header}>
 				<Text numberOfLines={1} style={styles.title}>
 					{event.title || "Untitled Event"}
 				</Text>
 				<TouchableOpacity
 					style={[styles.button, styles.editButton]}
-					onPress={
-						() => console.log("Implement Add New Event on Push")
-						// push({
-						// 	state: { isOpen: true },
-						// 	props: { ...event, persons: event.expand?.persons },
-						// 	component: EventPanelCrud,
-						// })
-					}
+					onPress={() => {
+						setBottomSheetContent?.(
+							<EventCreateUpdatePanel
+								{...event}
+								persons={event.expand?.persons}
+							/>,
+						);
+					}}
 				>
 					<TabBarIcon name="pencil" style={styles.icon} />
 					<Text>Edit</Text>
@@ -53,10 +67,9 @@ export const EventListPanel = ({
 
 			{event.startDatetime && (
 				<View style={styles.row}>
-					{/* <CalendarIcon style={styles.icon} /> */}
 					<TabBarIcon name="calendar" style={styles.icon} />
 					<Text style={styles.text}>
-						{new Date(event.startDatetime).toLocaleString()}
+						{new Date(event.startDatetime).toLocaleString(undefined, { dateStyle: "short", timeStyle: "short" })}
 					</Text>
 				</View>
 			)}
@@ -81,7 +94,7 @@ export const EventListPanel = ({
 					<Text style={styles.text}>{event.description}</Text>
 				</View>
 			)}
-		</View>
+		</TouchableOpacity>
 	);
 
 	return (
@@ -110,13 +123,8 @@ export const EventListPanel = ({
 				>
 					<TabBarIcon name="close" style={{ fontSize: 20 }} />
 				</TouchableOpacity>
-				<TouchableOpacity
-					style={[
-						styles.button,
-						{
-							borderColor: "rebeccapurple",
-						},
-					]}
+				<Button
+					label="New Event"
 					onPress={() => {
 						setBottomSheetContent?.(
 							<EventCreateUpdatePanel
@@ -125,9 +133,8 @@ export const EventListPanel = ({
 							/>,
 						);
 					}}
-				>
-					<Text>New Event</Text>
-				</TouchableOpacity>
+					style={{ borderColor: "rebeccapurple" }}
+				/>
 			</View>
 			<FlatList
 				data={events}
@@ -158,7 +165,13 @@ const styles = StyleSheet.create({
 		fontSize: 18,
 		fontWeight: "bold",
 	},
-	editButton: { borderColor: "lightgrey", flexDirection: "row", alignItems: "center", paddingBottom: 2, borderWidth: 1 },
+	editButton: {
+		borderColor: "lightgrey",
+		flexDirection: "row",
+		alignItems: "center",
+		paddingBottom: 2,
+		borderWidth: 1,
+	},
 	row: {
 		flexDirection: "row",
 		alignItems: "center",

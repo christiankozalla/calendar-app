@@ -13,6 +13,7 @@ import {
 	FlatList,
 	TouchableOpacity,
 	StyleSheet,
+	SafeAreaView,
 } from "react-native";
 import { pb } from "@/api/pocketbase";
 import {
@@ -28,10 +29,9 @@ import { TabBarIcon } from "@/components/navigation/TabBarIcon";
 import { ConfigureCalendarPanel } from "@/components/ConfigureCalendarPanel";
 import { CalendarsState } from "@/store/Calendars";
 import { CreateCalendarPanel } from "@/components/CreateCalendarPanel";
-import Button from "react-native-ui-lib/button";
+import { Button } from "@/components/Button";
 import { typography } from "@/utils/typography";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { CreateInvitationPanel } from "@/components/CreateInvitationPanel";
 import { globalstyles } from "@/utils/globalstyles";
 import { StatusBar } from "expo-status-bar";
@@ -39,12 +39,19 @@ import { ProfileInfoPanel } from "@/components/ProfileInfoPanel";
 import { bottomsheetStyles } from "@/utils/bottomsheetStyles";
 
 type CalendarListProps = {
-	calendars: CalendarsResponse[] | null;
+	calendars: CalendarsResponse[];
 	bottomSheetRef: RefObject<BottomSheetModal>;
 	setBottomSheetContent: Dispatch<SetStateAction<ReactNode>>;
 };
 
 type CalendarsWithUsers = CalendarsResponse<{ users: UsersResponse[] }>;
+
+const EmptyCalendarList = () => (
+	<Text>
+		You don't have any calendars yet.{"\n"}Click the "Create" button to create
+		one.
+	</Text>
+);
 
 const CalendarList = ({
 	calendars,
@@ -58,6 +65,7 @@ const CalendarList = ({
 			<FlatList
 				data={calendars}
 				keyExtractor={(item) => item.id}
+				ListEmptyComponent={EmptyCalendarList}
 				renderItem={({ item: c }) => (
 					<View style={styles.calendarItem}>
 						<View style={styles.calendarHeader}>
@@ -98,8 +106,7 @@ export default function HomeScreen() {
 	const bottomSheetRef = useRef<BottomSheetModal>(null);
 
 	useEffect(() => {
-		isAuthenticated &&
-			pb.authStore.record?.id &&
+		pb.authStore.record?.id &&
 			pb
 				.collection(Collections.Calendars)
 				.getFullList<CalendarsWithUsers>({
@@ -112,7 +119,7 @@ export default function HomeScreen() {
 					setCalendars(r);
 				})
 				.catch((e) => {
-					console.error(e);
+					console.error("error fetching calendars", e);
 				});
 	}, []);
 
@@ -148,7 +155,8 @@ export default function HomeScreen() {
 					<Button
 						label="Create"
 						size="small"
-						backgroundColor="#006600"
+						textColor="white"
+						style={{ backgroundColor: "#006600", borderWidth: 0 }}
 						onPress={createCalendar}
 					/>
 				</View>
@@ -217,7 +225,6 @@ const styles = StyleSheet.create({
 	eventItem: { padding: 12, borderBottomWidth: 1, borderBottomColor: "#eee" },
 	eventTitle: { fontWeight: "500" },
 	eventDate: { fontSize: 12, color: "#666" },
-	noEvents: { padding: 12 },
 	icon: {
 		fontSize: 24,
 	},

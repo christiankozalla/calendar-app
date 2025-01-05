@@ -1,9 +1,14 @@
 import React, { useCallback, useState } from "react";
-import { View, TextInput, TouchableOpacity, Text, StyleSheet } from "react-native";
+import {
+	View,
+	TextInput,
+	StyleSheet,
+} from "react-native";
 import type { PersonsRecord } from "@/api/pocketbase-types";
 import { pb } from "@/api/pocketbase";
 import { useSetRecoilState } from "recoil";
 import { PersonsState } from "@/store/Persons";
+import { Button } from "./Button";
 
 type Props = Pick<PersonsRecord, "calendar">;
 
@@ -16,12 +21,13 @@ export const CreatePerson = ({ calendar }: Props) => {
 
 		const personData = {
 			name: name,
-			calendar: calendar
+			calendar: calendar,
 		};
-	
 
 		try {
-			const newPersonResponse = await pb.collection("persons").create(personData);
+			const newPersonResponse = await pb
+				.collection("persons")
+				.create(personData);
 			setPersons((persons) => [
 				...persons.filter((p) => p.id !== newPersonResponse.id),
 				newPersonResponse,
@@ -42,9 +48,13 @@ export const CreatePerson = ({ calendar }: Props) => {
 				placeholderTextColor="#999"
 				style={styles.input}
 			/>
-			<TouchableOpacity style={styles.button} onPress={submit}>
-				<Text style={styles.buttonText}>Create Person</Text>
-			</TouchableOpacity>
+			<Button
+				label="Create Person"
+				onPress={submit}
+				disabled={!name}
+				style={{ backgroundColor: "#007AFF", borderWidth: 0 }}
+				textColor="#fff"
+			/>
 		</View>
 	);
 };
@@ -55,20 +65,10 @@ const styles = StyleSheet.create({
 	},
 	input: {
 		height: 40,
-		borderColor: 'gray',
+		borderColor: "gray",
 		borderWidth: 1,
 		marginBottom: 10,
 		paddingHorizontal: 10,
 		borderRadius: 5,
-	},
-	button: {
-		backgroundColor: '#007AFF',
-		padding: 10,
-		borderRadius: 5,
-		alignItems: 'center',
-	},
-	buttonText: {
-		color: 'white',
-		fontWeight: 'bold',
 	},
 });

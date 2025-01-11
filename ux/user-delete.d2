@@ -1,0 +1,17 @@
+vars: {
+  d2-config: {
+    layout-engine: elk
+    theme-id: 300
+  }
+}
+
+collections: {
+  user
+  person
+  calendar
+}
+
+delete user -> collections.user: delete
+delete user -> collections.person: delete
+delete user -> collections.calendar: delete\nif user is owner.
+collections.calendar -> collections.user: update users\nthat are member\nof deleted calendars

@@ -6,6 +6,10 @@ Start the Pocketbase app with `modd` and the React Native app with `npm -C react
 
 - [modd](https://github.com/cortesi/modd): Watches for changes in Golang source code and rebuilds the PocketBase server upon changes.
 
+## UX Diagrams
+
+Diagrams of flows, events, actions etc are declared in `ux` directory using the declarative diagramming language [d2](https://d2lang.com). To generate and/or update diagrams as PNG files, run: `./ux/scripts/create-diagrams.sh`
+
 ## Running in production
 
 The app is currently running on a VPS behind a Caddy server reverse-proxy that routes all requests to Pocketbase. Pocketbase acts as a REST API on all routes like /api/* . Pocketbase is deployed as a single binary. A single process is managed by systemd. All data is currently stored in the `pb_data` directory such as the SQLite database or user-provided uploaded files. In the future, an S3 storage can be used for such file hosting.

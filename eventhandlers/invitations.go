@@ -12,6 +12,7 @@ import (
 	"github.com/pocketbase/pocketbase/tools/security"
 )
 
+// this hook creates a JWT token for an invitation before the invitation record is saved
 func OnBeforeCreateInvitation(app *pocketbase.PocketBase) func(*core.RecordRequestEvent) error {
 	JWT_SECRET := os.Getenv("JWT_SECRET")
 
@@ -43,6 +44,7 @@ func OnBeforeCreateInvitation(app *pocketbase.PocketBase) func(*core.RecordReque
 	}
 }
 
+// after an invited user has signed up through an invitation link, this hook verifies the token and adds the user to the calendar
 func OnAfterUsersCreateHandleInvitation(app *pocketbase.PocketBase) func(*core.RecordRequestEvent) error {
 	JWT_SECRET := os.Getenv("JWT_SECRET")
 

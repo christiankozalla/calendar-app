@@ -1,51 +1,37 @@
-import type { UsersResponse } from "@/api/pocketbase-types";
+import type { CalendarsResponse, UsersResponse } from "@/api/pocketbase-types";
 import { View, Text, StyleSheet } from "react-native";
 import { useState } from "react";
-import { pb } from "@/api/pocketbase";
-import { Collections, type CalendarsResponse } from "@/api/pocketbase-types";
+import { pb, PbOperations } from "@/api/pocketbase";
 import { useSetRecoilState } from "recoil";
-import { CalendarsState } from "@/store/Calendars";
+import { CalendarsState, type CalendarsStateType } from "@/store/Calendars";
 import { Button } from "@/components/Button";
-import { updateCalendarState } from "@/utils/calendar";
 import { BottomSheetTextInput, BottomSheetView } from "@gorhom/bottom-sheet";
 import { generateUUID } from "@/utils/uuid";
 import { bottomsheetStyles } from "@/utils/bottomsheetStyles";
 
 type Props = {
-	onSuccess: ReturnType<typeof Promise.withResolvers<Response>>["resolve"];
-	onFailure: ReturnType<typeof Promise.withResolvers<Response>>["reject"];
+	onSuccess: ReturnType<typeof Promise.withResolvers<CalendarsResponse<never>>>["resolve"];
+	onFailure: ReturnType<typeof Promise.withResolvers<CalendarsResponse<never>>>["reject"];
 };
-type Response = CalendarsResponse<{ users: UsersResponse[] }>;
 
 export const CreateCalendarPanel = ({ onSuccess, onFailure }: Props) => {
 	const [id] = useState(generateUUID());
 	const [name, setName] = useState("");
-	const setCalendars = useSetRecoilState(CalendarsState);
 
 	const createCalendar = async () => {
-		if (!name.trim()) return;
+		if (!pb.authStore.record?.id || !name.trim()) return;
 
-		try {
-			const newCalendar = await pb
-				.collection(Collections.Calendars)
-				.create<Response>(
-					{
-						id,
-						name,
-						owner: pb.authStore.record?.id,
-						users: [pb.authStore.record?.id],
-					},
-					{
-						expand: "users",
-					},
-				);
+		const newCalendarResponse = await PbOperations.createCalendar(
+			{ id, name, owner: pb.authStore.record.id },
+		);
 
-			setCalendars((prev) => updateCalendarState(prev, newCalendar));
+		if ("error" in newCalendarResponse) {
+			// show error screen
+			console.error("CreateCalendarPanel", newCalendarResponse.error);
+			onFailure(newCalendarResponse.error);
+		} else {
 			setName("");
-			onSuccess(newCalendar);
-		} catch (err) {
-			console.error("CreateCalendarPanel",err);
-			onFailure(err);
+			onSuccess(newCalendarResponse);
 		}
 	};
 

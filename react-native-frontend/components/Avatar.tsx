@@ -1,5 +1,6 @@
 import { Image } from "react-native";
 import { TabBarIcon } from "./navigation/TabBarIcon";
+import { Fragment } from "react";
 
 const sizes = {
 	small: {
@@ -33,7 +34,7 @@ export const Avatar = ({
 	size,
 }: { uri?: string | null; size: keyof typeof sizes }) => {
 	return (
-		<>
+		<Fragment>
 			{uri ? (
 				<Image
 					source={{ uri }}
@@ -44,6 +45,6 @@ export const Avatar = ({
 			) : (
 				<TabBarIcon name="person-circle" style={sizes[size].icon} />
 			)}
-		</>
+		</Fragment>
 	);
 };

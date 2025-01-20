@@ -1,43 +1,36 @@
 import React, { useCallback, useState } from "react";
-import {
-	View,
-	TextInput,
-	StyleSheet,
-} from "react-native";
-import type { PersonsRecord } from "@/api/pocketbase-types";
-import { pb } from "@/api/pocketbase";
-import { useSetRecoilState } from "recoil";
-import { PersonsState } from "@/store/Persons";
+import { View, TextInput, StyleSheet } from "react-native";
+import { pb, PbOperations } from "@/api/pocketbase";
 import { Button } from "./Button";
+import { useSetRecoilState } from "recoil";
+import { CalendarsState } from "@/store/Calendars";
 
-type Props = Pick<PersonsRecord, "calendar">;
+type Props = { calendar: string };
 
 export const CreatePerson = ({ calendar }: Props) => {
 	const [name, setName] = useState<string>("");
-	const setPersons = useSetRecoilState(PersonsState);
+	const setCalendarsState = useSetRecoilState(CalendarsState);
 
 	const submit = useCallback(async () => {
 		if (!name.trim()) return; // Prevent submission if name is empty
 
 		const personData = {
 			name: name,
-			calendar: calendar,
 		};
 
 		try {
-			const newPersonResponse = await pb
+			const newPerson = await pb
 				.collection("persons")
 				.create(personData);
-			setPersons((persons) => [
-				...persons.filter((p) => p.id !== newPersonResponse.id),
-				newPersonResponse,
-			]);
+
+				await PbOperations.addPersonToCalendar(calendar, newPerson, setCalendarsState);
+
 			setName(""); // Clear input after successful submission
 		} catch (error) {
 			console.error("Error creating person:", error);
 			// Handle error (e.g., show an alert to the user)
 		}
-	}, [name, calendar, setPersons]);
+	}, [name, calendar]);
 
 	return (
 		<View style={styles.container}>

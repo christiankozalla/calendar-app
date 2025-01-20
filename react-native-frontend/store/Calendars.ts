@@ -1,7 +1,9 @@
-import type { CalendarsResponse, UsersResponse } from "@/api/pocketbase-types";
+import type { CalendarsResponse, PersonsResponse, UsersResponse } from "@/api/pocketbase-types";
 import { atom } from "recoil";
 
-export const CalendarsState = atom<CalendarsResponse<{ users: UsersResponse[] }>[]>({
+export type CalendarsStateType = { [calendarId: string]: CalendarsResponse<{ owner?: UsersResponse, users?: UsersResponse[]; persons?: PersonsResponse[] }>} 
+
+export const CalendarsState = atom<CalendarsStateType>({
 	key: "Calendars",
-	default: [],
+	default: {},
 });

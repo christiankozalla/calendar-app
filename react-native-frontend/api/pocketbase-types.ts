@@ -99,6 +99,7 @@ export type CalendarsRecord = {
 	id: string;
 	name?: string;
 	owner?: RecordIdString;
+	persons?: RecordIdString[];
 	updated?: IsoDateString;
 	users?: RecordIdString[];
 };
@@ -177,26 +178,23 @@ export type MessagesRecord = {
 };
 
 export type PersonsRecord = {
-	calendar?: RecordIdString;
+	avatar?: string;
 	color?: string;
 	created?: IsoDateString;
-	email?: string;
 	id: string;
 	name?: string;
 	updated?: IsoDateString;
+	user?: RecordIdString;
 };
 
 export type UsersRecord = {
-	avatar?: string;
 	created?: IsoDateString;
 	email?: string;
 	emailVisibility?: boolean;
 	id: string;
-	name?: string;
 	password: string;
 	tokenKey: string;
 	updated?: IsoDateString;
-	username: string;
 	verified?: boolean;
 };
 

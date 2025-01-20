@@ -10,28 +10,24 @@ import {
 import {
 	View,
 	Text,
-	FlatList,
 	TouchableOpacity,
 	StyleSheet,
 	SafeAreaView,
+	SectionList,
+	type SectionListData,
 } from "react-native";
-import { pb } from "@/api/pocketbase";
-import {
-	type CalendarsResponse,
-	Collections,
-	type UsersResponse,
-} from "@/api/pocketbase-types";
+import { PbOperations } from "@/api/pocketbase";
+import type { CalendarsResponse } from "@/api/pocketbase-types";
 import { Redirect, useRouter } from "expo-router";
-import { useRecoilState, useRecoilValue } from "recoil";
-import { AuthState } from "@/store/Authentication";
+import { useRecoilValue } from "recoil";
+import { AuthState, UserState } from "@/store/Authentication";
 import { Header } from "@/components/Header";
 import { TabBarIcon } from "@/components/navigation/TabBarIcon";
 import { ConfigureCalendarPanel } from "@/components/ConfigureCalendarPanel";
-import { CalendarsState } from "@/store/Calendars";
 import { CreateCalendarPanel } from "@/components/CreateCalendarPanel";
 import { Button } from "@/components/Button";
 import { typography } from "@/utils/typography";
-import { BottomSheetModal } from "@gorhom/bottom-sheet";
+import { BottomSheetModal, BottomSheetView } from "@gorhom/bottom-sheet";
 import { CreateInvitationPanel } from "@/components/CreateInvitationPanel";
 import { globalstyles } from "@/utils/globalstyles";
 import { StatusBar } from "expo-status-bar";
@@ -39,12 +35,12 @@ import { ProfileInfoPanel } from "@/components/ProfileInfoPanel";
 import { bottomsheetStyles } from "@/utils/bottomsheetStyles";
 
 type CalendarListProps = {
-	calendars: CalendarsResponse[];
+	userId: string;
+	calendars?: CalendarsResponse<never>[];
+	setCalendars: Dispatch<SetStateAction<CalendarsResponse<never>[]>>;
 	bottomSheetRef: RefObject<BottomSheetModal>;
 	setBottomSheetContent: Dispatch<SetStateAction<ReactNode>>;
 };
-
-type CalendarsWithUsers = CalendarsResponse<{ users: UsersResponse[] }>;
 
 const EmptyCalendarList = () => (
 	<Text>
@@ -54,18 +50,47 @@ const EmptyCalendarList = () => (
 );
 
 const CalendarList = ({
+	userId,
 	calendars,
+	setCalendars,
 	bottomSheetRef,
 	setBottomSheetContent,
 }: CalendarListProps) => {
 	const router = useRouter();
 
+	const groupSections = (
+		calendars: CalendarsResponse<never>[],
+	): SectionListData<CalendarsResponse<never>>[] => {
+		const sections = [
+			{ title: "Calendars you own", data: [] as CalendarsResponse<never>[] },
+			{
+				title: "Calendars you're part of",
+				data: [] as CalendarsResponse<never>[],
+			},
+		];
+
+		return calendars.reduce((acc, curr) => {
+			if (curr.owner === userId) {
+				acc[0].data.push(curr);
+			} else {
+				acc[1].data.push(curr);
+			}
+			return acc;
+		}, sections);
+	};
+
+	if (!calendars || calendars.length === 0) {
+		return <EmptyCalendarList />;
+	}
+
 	return (
 		<View style={styles.container}>
-			<FlatList
-				data={calendars}
+			<SectionList
+				sections={groupSections(calendars)}
 				keyExtractor={(item) => item.id}
-				ListEmptyComponent={EmptyCalendarList}
+				renderSectionHeader={({ section: { title } }) => (
+					<Text style={styles.sectionHeader}>{title}</Text>
+				)}
 				renderItem={({ item: c }) => (
 					<View style={styles.calendarItem}>
 						<View style={styles.calendarHeader}>
@@ -75,7 +100,7 @@ const CalendarList = ({
 									<TouchableOpacity
 										onPress={() => {
 											setBottomSheetContent(
-												<ConfigureCalendarPanel calendarId={c.id} />,
+												<ConfigureCalendarPanel calendarId={c.id} setCalendars={setCalendars} />,
 											);
 											bottomSheetRef.current?.present();
 										}}
@@ -101,44 +126,53 @@ const CalendarList = ({
 
 export default function HomeScreen() {
 	const isAuthenticated = useRecoilValue(AuthState);
-	const [calendars, setCalendars] = useRecoilState(CalendarsState);
+	const user = useRecoilValue(UserState);
+	const [calendars, setCalendars] = useState<CalendarsResponse<never>[]>([]);
 	const [bottomSheetContent, setBottomSheetContent] = useState<ReactNode>();
 	const bottomSheetRef = useRef<BottomSheetModal>(null);
 
 	useEffect(() => {
-		pb.authStore.record?.id &&
-			pb
-				.collection(Collections.Calendars)
-				.getFullList<CalendarsWithUsers>({
-					filter: pb.filter("users ~ {:userId}", {
-						userId: pb.authStore.record.id,
-					}),
-					expand: "users",
-				})
-				.then((r) => {
-					setCalendars(r);
-				})
-				.catch((e) => {
-					console.error("error fetching calendars", e);
-				});
+		if (user?.id) {
+			PbOperations.getAllCalendarsOwnedByAndUserIsPartOf(user?.id).then(
+				(calendarsResponse) => {
+					if ("error" in calendarsResponse) {
+						// show error screen
+						console.error(calendarsResponse.error);
+					} else {
+						setCalendars(calendarsResponse.items);
+					}
+				},
+			);
+		}
 	}, []);
 
 	const createCalendar = async () => {
 		const { promise, resolve, reject } =
-			Promise.withResolvers<CalendarsWithUsers>();
+			Promise.withResolvers<CalendarsResponse<never>>();
 		setBottomSheetContent(
 			<CreateCalendarPanel onSuccess={resolve} onFailure={reject} />,
 		);
 		bottomSheetRef.current?.present();
 		try {
 			const newCalendar = await promise;
-			setBottomSheetContent(<CreateInvitationPanel calendar={newCalendar} />);
+			setCalendars((prev) => [newCalendar, ...prev]);
+			setBottomSheetContent(
+				<BottomSheetView
+					style={[
+						bottomsheetStyles.paddingTop,
+						bottomsheetStyles.paddingHorizontal,
+						bottomsheetStyles.paddingBottom,
+					]}
+				>
+					<CreateInvitationPanel calendar={newCalendar} />
+				</BottomSheetView>,
+			);
 		} catch (err) {
-			// show error dialog
+			// show error screen
 		}
 	};
 
-	if (!isAuthenticated) {
+	if (!isAuthenticated || !user) {
 		return <Redirect href="/login-signup" />;
 	}
 
@@ -162,7 +196,9 @@ export default function HomeScreen() {
 				</View>
 
 				<CalendarList
+					userId={user.id}
 					calendars={calendars}
+					setCalendars={setCalendars}
 					setBottomSheetContent={setBottomSheetContent}
 					bottomSheetRef={bottomSheetRef}
 				/>
@@ -233,6 +269,9 @@ const styles = StyleSheet.create({
 		justifyContent: "space-between",
 		alignItems: "center",
 		marginTop: 12,
+		marginBottom: 12,
+	},
+	sectionHeader: {
 		marginBottom: 12,
 	},
 });

@@ -8,16 +8,16 @@ import {
 } from "react-native";
 import {
 	Collections,
-	type UsersResponse,
+	type PersonsResponse,
 	type CalendarsResponse,
 } from "@/api/pocketbase-types";
-import { pb } from "@/api/pocketbase";
-import { useCallback, useEffect, useState } from "react";
+import { pb, PbOperations } from "@/api/pocketbase";
+import { Fragment, useCallback, useEffect, useState } from "react";
+import type { Dispatch, SetStateAction } from "react";
 import { TabBarIcon } from "./navigation/TabBarIcon";
 import { useRecoilState } from "recoil";
-import { CalendarsState } from "@/store/Calendars";
+import { CalendarsState, type CalendarsStateType } from "@/store/Calendars";
 import { CreateInvitationPanel } from "./CreateInvitationPanel";
-import { updateCalendarState } from "@/utils/calendar";
 import {
 	BottomSheetTextInput,
 	BottomSheetFlatList,
@@ -28,93 +28,67 @@ import { bottomsheetStyles } from "@/utils/bottomsheetStyles";
 
 type Props = {
 	calendarId: string;
+	setCalendars: Dispatch<SetStateAction<CalendarsResponse<never>[]>>;
 };
 
-type Nullable<T> = T | null | undefined;
+type PersonWithUserId = PersonsResponse & { user: string };
 
-const removeUserFromCalendar = async (
-	calendar: CalendarsResponse<{ users: UsersResponse[] }>,
-	userId: string,
-) => {
-	if (!calendar.expand) {
-		return;
-	}
-	return await pb
-		.collection(Collections.Calendars)
-		.update<CalendarsResponse<{ users: UsersResponse[] }>>(calendar.id, {
-			users: calendar.expand?.users.filter((u) => u.id !== userId),
-		});
-};
-
-const deleteCalendar = async (calendarId: string) => {
-	await pb.collection(Collections.Calendars).delete(calendarId);
-};
-
-export const ConfigureCalendarPanel = ({ calendarId }: Props) => {
+export const ConfigureCalendarPanel = ({
+	calendarId,
+	setCalendars: setLocalCalendars,
+}: Props) => {
 	const [calendars, setCalendars] = useRecoilState(CalendarsState);
+	const [calendarName, setCalendarName] = useState(
+		calendars[calendarId]?.name || "",
+	);
 	const [loading, setLoading] = useState(false);
-	const [calendar, setCalendar] =
-		useState<
-			Nullable<
-				CalendarsResponse<{
-					users: UsersResponse[];
-				}>
-			>
-		>(null);
 	const { dismiss } = useBottomSheetModal();
 
 	useEffect(() => {
 		(async () => {
-			try {
-				setLoading(true);
-				const calendarFromState = calendars.find((c) => c.id === calendarId);
-				if (calendarFromState) {
-					setCalendar(calendarFromState);
-				} else {
-					const calendar = await pb
-						.collection<CalendarsResponse<{ users: UsersResponse[] }>>(
-							Collections.Calendars,
-						)
-						.getOne(calendarId, { expand: "users" });
+			setLoading(true);
+			const calendarFromState = calendars[calendarId];
 
-					setCalendar(calendar);
-					setCalendars((prev) => updateCalendarState(prev, calendar));
+			if (!calendarFromState) {
+				const calendarResponse = await PbOperations.getCalendarDetails(
+					calendarId,
+					setCalendars,
+				);
+
+				if ("error" in calendarResponse) {
+					// show error screen
+					console.error("ConfigureCalendarPanel", calendarResponse.error);
 				}
-			} catch (err) {
-				console.error("ConfigureCalendarPanel", err);
-			} finally {
-				setLoading(false);
 			}
+			setLoading(false);
 		})();
 	}, [calendarId]);
 
 	const updateCalendar = useCallback(async () => {
-		if (!calendar) {
+		if (!calendars[calendarId]) {
 			return;
 		}
 		try {
 			setLoading(true);
 			const updatedCalendar = await pb
 				.collection(Collections.Calendars)
-				.update<CalendarsResponse<{ users: UsersResponse[] }>>(
-					calendar.id,
-					{ name: calendar.name },
-					{ expand: "users" },
+				.update<CalendarsStateType[string]>(
+					calendarId,
+					{ name: calendarName },
+					{ expand: "users,owner,persons" },
 				);
-			setCalendar(updatedCalendar);
-			setCalendars((prev) => updateCalendarState(prev, updatedCalendar));
+			setCalendars((prev) => ({ ...prev, [calendarId]: updatedCalendar }));
 		} catch (err) {
 			console.error("ConfigureCalendarPanel", err);
 		} finally {
 			setLoading(false);
 		}
-	}, [calendar]);
+	}, [calendars, calendarId, calendarName]);
 
 	const deleteCalendarHandler = useCallback(() => {
 		Alert.alert(
 			"Confirm Delete",
-			`Are you sure you want to delete 
-			${calendar?.name || "this calendar"}?`,
+			`Are you sure you want to delete ${calendars[calendarId]?.name || "this calendar"}?`,
 			[
 				{
 					text: "Cancel",
@@ -123,8 +97,10 @@ export const ConfigureCalendarPanel = ({ calendarId }: Props) => {
 				{
 					text: "Delete",
 					onPress: () =>
-						deleteCalendar(calendarId).then(() => {
-							setCalendars((prev) => prev.filter((c) => c.id !== calendarId));
+						PbOperations.deleteCalendar(calendarId, setCalendars).then(() => {
+							setLocalCalendars((prev) =>
+								prev.filter((c) => c.id !== calendarId),
+							);
 							dismiss();
 						}),
 					style: "destructive",
@@ -132,92 +108,95 @@ export const ConfigureCalendarPanel = ({ calendarId }: Props) => {
 			],
 			{ cancelable: true },
 		);
-	}, [calendar]);
+	}, [calendars, calendarId]);
 
 	if (loading) {
 		return <ActivityIndicator />;
 	}
 
-	if (!calendar) {
+	if (!calendars[calendarId]) {
 		return <Text>Calendar not found</Text>;
 	}
 
-	const owner = calendar.expand?.users.find((u) => u.id === calendar.owner);
+	const ownersName =
+		calendars[calendarId]?.expand?.owner?.id === pb.authStore.record?.id // is the owner the current user?
+			? "you"
+			: (calendars[calendarId].expand?.persons?.find(
+					(p) => p.user === calendars[calendarId]?.expand?.owner?.id,
+				)?.name ?? // or found in the persons list?
+				"a user without a name");
 
 	return (
 		<BottomSheetView
 			style={[
 				bottomsheetStyles.paddingTop,
 				bottomsheetStyles.paddingHorizontal,
+				bottomsheetStyles.paddingBottom,
 			]}
 		>
-			<View style={styles.container}>
-				<View style={styles.header}>
-					<BottomSheetTextInput
-						style={styles.title}
-						value={calendar?.name}
-						onChangeText={(text) => {
-							setCalendar((prev) => (prev ? { ...prev, name: text } : null));
-						}}
-						autoCorrect={false}
-						onBlur={updateCalendar}
-					/>
-					<TouchableOpacity onPress={deleteCalendarHandler}>
-						<TabBarIcon name="trash-outline" style={styles.icon} />
-					</TouchableOpacity>
-				</View>
-				{owner && (
-					<>
-						<Text style={styles.owner}>
-							Created by{" "}
-							{owner.id === pb.authStore.record?.id
-								? "you"
-								: owner?.name || "user without name"}
-						</Text>
-
-						{(calendar.expand?.users || []).filter((u) => u.id !== owner?.id)
-							.length > 0 && (
-							<BottomSheetFlatList
-								keyExtractor={(u) => u.id}
-								data={calendar?.expand?.users.filter((u) => u.id !== owner?.id)}
-								renderItem={({ item: u }: { item: UsersResponse }) => (
-									<View style={styles.userListItem}>
-										<Text style={styles.userName}>{u.name}</Text>
-										{owner && owner.id !== u.id && (
-											<TouchableOpacity
-												onPress={() => {
-													setLoading(true);
-													removeUserFromCalendar(calendar, u.id)
-														.then((updatedCalendar) => {
-															setCalendar(updatedCalendar);
-														})
-														.finally(() => {
-															setLoading(false);
-														});
-												}}
-											>
-												<TabBarIcon name="remove-circle" style={styles.icon} />
-											</TouchableOpacity>
-										)}
-									</View>
-								)}
-							/>
-						)}
-					</>
-				)}
-
-				<CreateInvitationPanel calendar={calendar} />
+			<View style={styles.header}>
+				<BottomSheetTextInput
+					style={styles.title}
+					value={calendars[calendarId]?.name}
+					onChangeText={setCalendarName}
+					autoCorrect={false}
+					onBlur={updateCalendar}
+				/>
+				<TouchableOpacity
+					style={styles.deleteButton}
+					onPress={deleteCalendarHandler}
+				>
+					<TabBarIcon name="trash-outline" style={styles.icon} />
+				</TouchableOpacity>
 			</View>
+			<Fragment>
+				<Text style={styles.owner}>Created by {ownersName}</Text>
+
+				<BottomSheetFlatList
+					ListEmptyComponent={<Text>No persons in your calendar yet...</Text>}
+					keyExtractor={(p) => p.id}
+					data={calendars[calendarId].expand?.persons}
+					renderItem={({ item: p }: { item: PersonWithUserId }) => (
+						<View style={styles.userListItem}>
+							<Text style={styles.userName}>{p.name}</Text>
+							<TouchableOpacity
+								onPress={() => {
+									setLoading(true);
+									if (p.user) {
+										// if it is a UserPerson (virtual person representing a user)
+										PbOperations.removeUserFromCalendar(
+											calendars[calendarId].id,
+											p.user,
+											p.id,
+											setCalendars,
+										).finally(() => {
+											setLoading(false);
+										});
+									} else {
+										// if it is an ordinary person
+										PbOperations.removePersonFromCalendar(
+											calendars[calendarId].id,
+											p.id,
+											setCalendars,
+										).finally(() => {
+											setLoading(false);
+										});
+									}
+								}}
+							>
+								<TabBarIcon name="remove-circle" style={styles.icon} />
+							</TouchableOpacity>
+						</View>
+					)}
+				/>
+			</Fragment>
+
+			<CreateInvitationPanel calendar={calendars[calendarId]} />
 		</BottomSheetView>
 	);
 };
 
 const styles = StyleSheet.create({
-	container: {
-		gap: 4,
-		marginBottom: 16,
-		paddingBottom: 36,
-	},
 	header: {
 		flexDirection: "row",
 		justifyContent: "space-between",
@@ -229,6 +208,7 @@ const styles = StyleSheet.create({
 	},
 	owner: {
 		fontWeight: "bold",
+		marginBottom: 16,
 	},
 	userName: {
 		marginLeft: 16,
@@ -267,5 +247,9 @@ const styles = StyleSheet.create({
 		borderRadius: 4,
 		padding: 8,
 		marginBottom: 12,
+	},
+	deleteButton: {
+		paddingLeft: 12,
+		paddingBottom: 12,
 	},
 });

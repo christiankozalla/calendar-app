@@ -1,3 +1,4 @@
+import { Fragment } from "react";
 import { Text, View, StyleSheet, Dimensions } from "react-native";
 import type { EventsResponse, PersonsResponse } from "@/api/pocketbase-types";
 import { useRecoilValue } from "recoil";
@@ -13,11 +14,7 @@ type Props = {
 } & Partial<
 	Pick<
 		EventsResponse,
-		| "startDatetime"
-		| "endDatetime"
-		| "title"
-		| "description"
-		| "color"
+		"startDatetime" | "endDatetime" | "title" | "description" | "color"
 	>
 >;
 
@@ -50,7 +47,7 @@ export const EventDetailsPanel = ({
 						</Text>
 					</View>
 					{endDatetime && (
-						<>
+						<Fragment>
 							<TabBarIcon name="caret-forward" color={hexColor} />
 							<View>
 								<Text style={[typography.h6, styles.bold]}>
@@ -60,7 +57,7 @@ export const EventDetailsPanel = ({
 									{toTimeString(endDatetime)}
 								</Text>
 							</View>
-						</>
+						</Fragment>
 					)}
 				</View>
 			)}
@@ -78,12 +75,18 @@ export const EventDetailsPanel = ({
 
 			{persons.length > 0 && (
 				<View style={[styles.persons, styles.section]}>
-                        <TabBarIcon style={styles.icon} name="people-outline" color={hexColor} />
-					<Text style={typography.h6}>{persons.map((person) => person.name).join(", ")}</Text>
+					<TabBarIcon
+						style={styles.icon}
+						name="people-outline"
+						color={hexColor}
+					/>
+					<Text style={typography.h6}>
+						{persons.map((person) => person.name).join(", ")}
+					</Text>
 				</View>
 			)}
 
-            {/* Comments */}
+			{/* Comments */}
 		</BottomSheetView>
 	);
 };

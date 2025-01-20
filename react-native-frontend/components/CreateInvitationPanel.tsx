@@ -1,15 +1,16 @@
-import { useCallback, useState } from "react";
+import { Fragment, useCallback, useState } from "react";
 import { View, Text, StyleSheet } from "react-native";
 import { createURL } from "expo-linking";
 import type { CalendarsResponse, UsersResponse } from "@/api/pocketbase-types";
 import { pb } from "@/api/pocketbase";
 import { CopyableText } from "./CopyableText";
 import { Button } from "./Button";
-import { BottomSheetTextInput } from "@gorhom/bottom-sheet";
+import { BottomSheetTextInput, BottomSheetView } from "@gorhom/bottom-sheet";
 import { bottomsheetStyles } from "@/utils/bottomsheetStyles";
+import type { CalendarsStateType } from "@/store/Calendars";
 
 type Props = {
-	calendar: CalendarsResponse<{ users: UsersResponse[] }>;
+	calendar: CalendarsStateType[string];
 };
 
 // TODO: Re-design this component to allow MULTI user invite
@@ -28,7 +29,7 @@ export const CreateInvitationPanel = ({ calendar }: Props) => {
 				inviter: pb.authStore.record.id,
 			};
 
-			const {token} = await pb.collection("invitations").create(data);
+			const { token } = await pb.collection("invitations").create(data);
 
 			// const newInvitationLink = `${location.origin}/login-signup?token=${token}`;
 			const newInvitationLink = createURL("login-signup", {
@@ -41,7 +42,7 @@ export const CreateInvitationPanel = ({ calendar }: Props) => {
 	}, [inviteeEmail]);
 
 	return (
-		<View style={bottomsheetStyles.container}>
+		<Fragment>
 			<Text style={styles.title}>
 				Invite people to <Text style={styles.italic}>{calendar.name}</Text>
 			</Text>
@@ -72,7 +73,7 @@ export const CreateInvitationPanel = ({ calendar }: Props) => {
 					</CopyableText>
 				</View>
 			)}
-		</View>
+		</Fragment>
 	);
 };
 

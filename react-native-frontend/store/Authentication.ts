@@ -1,18 +1,12 @@
 // https://recoiljs.org/docs/basic-tutorial/atoms
 import { atom, type AtomEffect } from "recoil";
 import { pb } from "@/api/pocketbase";
-import type { UsersResponse } from "@/api/pocketbase-types";
+import type { PersonsResponse, UsersResponse } from "@/api/pocketbase-types";
 
 const getAuthStateFromPocketBaseSDK: AtomEffect<boolean> = ({
 	trigger,
 	setSelf,
 }) => {
-	const unsubscribe = pb.authStore.onChange((token) => {
-		setSelf(Boolean(token));
-	});
-
-	pb.authStore.clear()
-
 	if (trigger === "get") {
 		if (pb.authStore.isValid) {
 			pb.collection("users").authRefresh().then(() => {
@@ -26,10 +20,6 @@ const getAuthStateFromPocketBaseSDK: AtomEffect<boolean> = ({
 			setSelf(false);
 		}
 	}
-
-	return () => {
-		unsubscribe();
-	};
 };
 
 export const AuthState = atom({
@@ -42,10 +32,6 @@ const getUserFromPocketBaseSDK: AtomEffect<UsersResponse | null> = ({
 	trigger,
 	setSelf,
 }) => {
-	const unsubscribe = pb.authStore.onChange((_, model) => {
-		setSelf(model as UsersResponse);
-	});
-
 	if (trigger === "get") {
 		if (pb.authStore.isValid) {
 			setSelf(pb.authStore.record as UsersResponse);
@@ -54,15 +40,34 @@ const getUserFromPocketBaseSDK: AtomEffect<UsersResponse | null> = ({
 			setSelf(null);
 		}
 	}
-
-	return () => {
-		unsubscribe();
-	}
 };
 
+const getUserPersonFromPocketBaseSDK: AtomEffect<PersonsResponse | null> = ({
+	trigger,
+	setSelf,
+}) => {
+	if (trigger === "get") {
+		if (pb.authStore.record?.id) {
+			pb.collection("persons")
+				.getFirstListItem<PersonsResponse>(pb.filter("user = {:userId}", { userId: pb.authStore.record.id }))
+				.then(setSelf)
+				.catch((err) => {
+					console.error("Error getting user person", err?.data || err);
+					setSelf(null);
+				});
+		}
+	}
+}
 
 export const UserState = atom({
 	key: "User",
 	default: null,
 	effects: [getUserFromPocketBaseSDK]
+});
+
+// The person record associated with the current user
+export const UserPersonState = atom({
+	key: "UserPerson",
+	default: null,
+	effects: [getUserPersonFromPocketBaseSDK]
 });

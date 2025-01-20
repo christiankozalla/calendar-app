@@ -25,7 +25,6 @@ import {
 import { pb } from "@/api/pocketbase";
 import type { EventsResponse, PersonsResponse } from "@/api/pocketbase-types";
 import { useRecoilValue } from "recoil";
-import { PersonsState } from "@/store/Persons";
 import { ColorsState } from "@/store/Colors";
 import { ColorPicker } from "./ColorPicker";
 import { CreatePerson } from "./CreatePerson";
@@ -37,27 +36,23 @@ import { bottomsheetStyles } from "@/utils/bottomsheetStyles";
 import Checkbox from "expo-checkbox";
 import { typography } from "@/utils/typography";
 import { Button } from "./Button";
+import { CalendarsState } from "@/store/Calendars";
 
 type Props = {
 	persons?: PersonsResponse[];
 } & Partial<
 	Pick<
 		EventsResponse,
-		| "id"
-		| "startDatetime"
-		| "endDatetime"
-		| "title"
-		| "description"
-		| "calendar"
-		| "color"
+		"id" | "startDatetime" | "endDatetime" | "title" | "description" | "color"
 	>
->;
+> &
+	Pick<EventsResponse, "calendar">;
 
 export const EventCreateUpdatePanel = ({
 	id,
-	calendar,
-	title,
-	description,
+	calendar: calendarId,
+	title = "",
+	description = "",
 	startDatetime,
 	endDatetime,
 	color,
@@ -65,14 +60,13 @@ export const EventCreateUpdatePanel = ({
 }: Props) => {
 	const bottomSheetModal = useBottomSheetModal();
 	const personsModalRef = useRef<BottomSheetModal>(null);
-	const allPersons = useRecoilValue(PersonsState);
 
-	const [eventTitle, setEventTitle] = useState(title || "");
-	const [eventDescription, setEventDescription] = useState(description || "");
-	const [selectedPersons, setSelectedPersons] = useState([
-		pb.authStore.record as unknown as { id: string; name: string },
-		...persons,
-	]);
+	const calendars = useRecoilValue(CalendarsState);
+	const calendar = calendars[calendarId];
+
+	const [eventTitle, setEventTitle] = useState(title);
+	const [eventDescription, setEventDescription] = useState(description);
+	const [selectedPersons, setSelectedPersons] = useState(persons);
 	const [startDate, setStartDate] = useState(
 		startDatetime ? new Date(startDatetime) : new Date(),
 	);
@@ -88,7 +82,6 @@ export const EventCreateUpdatePanel = ({
 			: roundToNearestHour(startTime || new Date(), 1),
 	);
 	const [selectedColor, setSelectedColor] = useState(color);
-	const [isAlertDialogVisible, setIsAlertDialogVisible] = useState(false);
 	const colors = useRecoilValue(ColorsState);
 
 	const handleSubmit = useCallback(async () => {
@@ -104,17 +97,15 @@ export const EventCreateUpdatePanel = ({
 		try {
 			const owner = pb.authStore.record?.id;
 			const eventData = {
-				calendar, // id
+				calendarId,
 				owner,
 				title: eventTitle,
 				description: eventDescription,
 				startDatetime: startDateTime.toISOString(),
 				endDatetime: endDateTime.toISOString(),
-				persons: selectedPersons?.map((p) => p.id).filter((id) => id !== owner), // the owner is a User, not a Person, so its ID cannot be found in the persons table
+				persons: selectedPersons?.map((p) => p.id),
 				color: selectedColor,
 			};
-
-			console.log("handling submit", eventData);
 
 			if (id) {
 				await pb.collection("events").update(id, eventData);
@@ -126,7 +117,7 @@ export const EventCreateUpdatePanel = ({
 			console.log("submit err", err);
 		}
 	}, [
-		calendar,
+		calendarId,
 		id,
 		eventTitle,
 		eventDescription,
@@ -147,7 +138,7 @@ export const EventCreateUpdatePanel = ({
 		};
 
 	const onPersonCheckboxChange = (
-		person: PersonsResponse | { id: string; name: string },
+		person: PersonsResponse,
 		isSelected: boolean,
 	) => {
 		if (isSelected) {
@@ -276,10 +267,7 @@ export const EventCreateUpdatePanel = ({
 					>
 						{/* paddingBottom is some sort of hack to make dynamic sizing of the BottomSheet work - i.e. show CreatePerson component, too */}
 						<BottomSheetView style={{ paddingBottom: 104 }}>
-							{[
-								pb.authStore.record as unknown as { id: string; name: string },
-								...allPersons,
-							].map((person) => {
+							{calendar?.expand?.persons?.map((person) => {
 								const selectedState =
 									selectedPersons.findIndex((sp) => sp.id === person.id) > -1;
 								return (
@@ -313,7 +301,7 @@ export const EventCreateUpdatePanel = ({
 							>
 								Create a new person
 							</Text>
-							<CreatePerson calendar={calendar} />
+							<CreatePerson calendar={calendarId} />
 						</BottomSheetView>
 					</BottomSheetModal>
 				</BottomSheetModalProvider>

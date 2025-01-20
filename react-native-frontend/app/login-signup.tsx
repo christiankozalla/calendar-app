@@ -6,6 +6,8 @@ import {
 	TouchableOpacity,
 	StyleSheet,
 	SafeAreaView,
+	Keyboard,
+	ActivityIndicator,
 } from "react-native";
 import { useRouter, useGlobalSearchParams, Redirect } from "expo-router";
 import { pb } from "@/api/pocketbase";
@@ -15,10 +17,10 @@ import { AuthState } from "@/store/Authentication";
 import { type JwtBaseClaims, parse } from "@/utils/jwt";
 import { globalstyles } from "@/utils/globalstyles";
 import { StatusBar } from "expo-status-bar";
+import type { PersonsRecord } from "@/api/pocketbase-types";
 
 type SignupData = {
 	email: string;
-	name: string;
 	password: string;
 	passwordConfirm: string;
 	token?: string; // Invite Token
@@ -38,9 +40,13 @@ const loginUser = async ({
 	await pb.collection("users").authWithPassword(email, password);
 };
 
-const signupUser = async (data: SignupData, options?: RecordOptions) => {
+const signupUser = async (
+	data: SignupData & Pick<PersonsRecord, "name">,
+	options?: RecordOptions,
+) => {
 	console.log("Signing up user:", data.email);
-	await pb.collection("users").create(data, options);
+	const user = await pb.collection("users").create(data, options);
+	await pb.collection("persons").create({ name: data.name, user: user.id });
 	await loginUser({ email: data.email, password: data.password });
 };
 
@@ -49,6 +55,7 @@ export default function LoginSignup() {
 	const { token: inviteToken } = useGlobalSearchParams<{ token?: string }>();
 	const isAuthenticated = useRecoilValue(AuthState);
 
+	const [loading, setLoading] = useState(false);
 	const [activeTab, setActiveTab] = useState("login");
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
@@ -72,6 +79,8 @@ export default function LoginSignup() {
 	}, [inviteToken]);
 
 	const handleSubmit = async () => {
+		Keyboard.dismiss();
+		setLoading(true);
 		try {
 			if (activeTab === "login") {
 				await loginUser({ email, password });
@@ -86,6 +95,8 @@ export default function LoginSignup() {
 			if (err instanceof ClientResponseError) {
 				console.log("error", err);
 			}
+		} finally {
+			setLoading(false);
 		}
 	};
 
@@ -99,7 +110,7 @@ export default function LoginSignup() {
 
 			<View style={styles.container}>
 				<View style={styles.box}>
-					<Text style={styles.heading}>Welcome</Text>
+					<Text style={styles.heading}>Suntimes Calendar</Text>
 					<View style={styles.tabs}>
 						<TouchableOpacity
 							style={[styles.tab, activeTab === "login" && styles.activeTab]}
@@ -160,6 +171,7 @@ export default function LoginSignup() {
 						/>
 					)}
 					<TouchableOpacity style={styles.button} onPress={handleSubmit}>
+						{loading && <ActivityIndicator color="white" />}
 						<Text style={styles.buttonText}>
 							{activeTab === "login" ? "Login" : "Sign Up"}
 						</Text>

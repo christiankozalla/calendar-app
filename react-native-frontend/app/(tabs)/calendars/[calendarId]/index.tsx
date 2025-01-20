@@ -6,10 +6,10 @@ import {
 	ActivityIndicator,
 	SafeAreaView,
 } from "react-native";
-import { pb } from "@/api/pocketbase";
+import { pb, PbOperations } from "@/api/pocketbase";
 import type { EventsResponse, PersonsResponse } from "@/api/pocketbase-types";
 import { Link, useGlobalSearchParams } from "expo-router";
-import { useRecoilValue, useSetRecoilState } from "recoil";
+import { useRecoilState, useRecoilValue, useSetRecoilState } from "recoil";
 import { isSameDay } from "date-fns";
 import {
 	inRange,
@@ -20,10 +20,8 @@ import { EventListPanel } from "@/components/EventListPanel";
 import { EventCreateUpdatePanel } from "@/components/EventCreateUpdatePanel";
 import { Header } from "@/components/Header";
 import { ColorsState } from "@/store/Colors";
-import { PersonsState } from "@/store/Persons";
-import { type DateData, Calendar, CalendarList } from "react-native-calendars";
+import { type DateData, CalendarList } from "react-native-calendars";
 import { eventsToMarkedDates } from "@/utils/calendar";
-import type { ClientResponseError } from "pocketbase";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { globalstyles } from "@/utils/globalstyles";
 import { StatusBar } from "expo-status-bar";
@@ -39,7 +37,7 @@ const findEventsForDay = (
 	return events?.filter((e) => {
 		return !e.endDatetime
 			? isSameDay(day, e.startDatetime)
-			: inRange(day, new Date(e.startDatetime), new Date(e.endDatetime));
+			: inRange(day as Date, new Date(e.startDatetime), new Date(e.endDatetime));
 	});
 };
 
@@ -53,13 +51,12 @@ type EventWithPersons = EventsResponse<{ persons: PersonsResponse[] }>;
 
 export default function CalendarScreen() {
 	const { calendarId } = useGlobalSearchParams<{ calendarId: string }>();
-	const calendars = useRecoilValue(CalendarsState);
+	const [calendars, setCalendars] = useRecoilState(CalendarsState);
 	const colors = useRecoilValue(ColorsState);
-	const setPersons = useSetRecoilState(PersonsState);
 	const [loading, setLoading] = useState(true);
 	const [selected, setSelected] = useState<`${number}-${number}-${number}`>();
 
-	const calendarFromBackend = calendars.find((c) => c.id === calendarId);
+	const calendarFromBackend = calendars[calendarId];
 	const [events, setEvents] = useState<EventWithPersons[]>([]);
 
 	const bottomSheetRef = useRef<BottomSheetModal>(null);
@@ -68,8 +65,7 @@ export default function CalendarScreen() {
 	useEffect(() => {
 		if (calendarId) {
 			setLoading(true);
-			// const calendarRequest = pb.collection("calendars").getOne(calendarId);
-
+			const refreshCalendarState = PbOperations.getCalendarDetails(calendarId, setCalendars);
 			const eventsRequest = pb
 				.collection("events")
 				.getList<EventWithPersons>(undefined, undefined, {
@@ -77,19 +73,10 @@ export default function CalendarScreen() {
 					expand: "persons",
 				});
 
-			const personsRequest = pb
-				.collection("persons")
-				.getList(undefined, undefined, {
-					filter: pb.filter("calendar = {:calendarId}", { calendarId }),
-				});
-
-			Promise.allSettled([eventsRequest, personsRequest])
-				.then(([e, p]) => {
+			Promise.allSettled([eventsRequest, refreshCalendarState])
+				.then(([e]) => {
 					if (e.status === "fulfilled") {
 						setEvents(e.value.items);
-					}
-					if (p.status === "fulfilled") {
-						setPersons(p.value.items);
 					}
 				})
 				.catch((err) => {
@@ -162,6 +149,7 @@ export default function CalendarScreen() {
 					0,
 				).toISOString(),
 				calendar: calendarId,
+				allPersons: calendarFromBackend.expand?.persons ?? []
 			};
 			setBottomSheetContent(<EventCreateUpdatePanel {...props} />);
 			bottomSheetRef.current?.present();

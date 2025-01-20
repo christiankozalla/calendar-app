@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef, useState } from "react";
+import { Fragment, useCallback, useMemo, useRef, useState } from "react";
 import {
 	ActivityIndicator,
 	View,
@@ -15,9 +15,9 @@ import {
 	BottomSheetView,
 	BottomSheetTextInput,
 } from "@gorhom/bottom-sheet";
-import type { UsersResponse } from "@/api/pocketbase-types";
-import { useRecoilValue } from "recoil";
-import { UserState } from "@/store/Authentication";
+import type { PersonsResponse, UsersResponse } from "@/api/pocketbase-types";
+import { type SetterOrUpdater, useRecoilState, useRecoilValue } from "recoil";
+import { UserPersonState, UserState } from "@/store/Authentication";
 import { Button } from "./Button";
 import { router } from "expo-router";
 import { ImageUploadButton } from "./ImageUploadButton";
@@ -27,7 +27,10 @@ import { bottomsheetStyles } from "@/utils/bottomsheetStyles";
 import { FullWidthGreyBorderButton } from "./FullWidthGreyBorderButton";
 
 export const ProfileInfoPanel = () => {
+	// updating the user record with update pb.authStore.record AND UserState atom
 	const user = useRecoilValue(UserState);
+	// userPerson Recoil state must be updated manually
+	const [userPerson, setUserPerson] = useRecoilState(UserPersonState);
 	const bottomSheetRef = useRef<BottomSheetModal>(null);
 	if (!user) {
 		return <ActivityIndicator />;
@@ -40,7 +43,7 @@ export const ProfileInfoPanel = () => {
 		: null;
 
 	return (
-		<>
+		<Fragment>
 			<TouchableOpacity
 				style={[styles.flexRow, { flex: 1 }]}
 				onPress={() => {
@@ -50,7 +53,7 @@ export const ProfileInfoPanel = () => {
 				<Avatar uri={avatarUri} size="small" />
 				<View style={{ flex: 1 }}>
 					<View style={styles.flexRow}>
-						<Text style={typography.h6}>{user.name}</Text>
+						<Text style={typography.h6}>{userPerson?.name || ""}</Text>
 						<TabBarIcon name="pencil" style={{ fontSize: 16 }} />
 					</View>
 					<Text style={typography.small}>{user.email}</Text>
@@ -62,20 +65,32 @@ export const ProfileInfoPanel = () => {
 				style={bottomsheetStyles.container}
 				enablePanDownToClose
 			>
-				<ProfileEditor profile={user as UsersResponse} />
+				<ProfileEditor
+					user={user}
+					profile={userPerson}
+					setUserPerson={setUserPerson}
+				/>
 			</BottomSheetModal>
-		</>
+		</Fragment>
 	);
 };
 
-const ProfileEditor = ({ profile }: { profile: UsersResponse }) => {
+const ProfileEditor = ({
+	user,
+	profile,
+	setUserPerson,
+}: {
+	user: UsersResponse;
+	profile: PersonsResponse | null;
+	setUserPerson: SetterOrUpdater<PersonsResponse | null>;
+}) => {
 	const [isUpdating, setUpdating] = useState(false);
 	const [editProfile, setEditProfile] = useState(false);
-	const [name, setName] = useState(profile.name);
+	const [name, setName] = useState(profile?.name || "");
 	const [avatar, setAvatar] = useState<ImagePickerAsset | null>(null);
 
-	const avatarUri = pb.authStore.record
-		? pb.files.getURL(pb.authStore.record, pb.authStore.record.avatar, {
+	const avatarUri = profile?.avatar
+		? pb.files.getURL(profile, profile.avatar, {
 				thumb: "400x400f",
 			})
 		: null;
@@ -83,14 +98,14 @@ const ProfileEditor = ({ profile }: { profile: UsersResponse }) => {
 	const saveAvatarAndName = useCallback(async () => {
 		const data = new FormData();
 
-		if (name?.trim() && name.trim() !== profile.name) {
+		if (name?.trim() && name.trim() !== profile?.name) {
 			data.set("name", name.trim());
 		}
 
 		if (avatar && avatar.type === "image") {
 			const fileName =
 				avatar.fileName ||
-				`${profile.id}-${generateUUID()}.${getImageFileExtension(avatar.mimeType)}`;
+				`${profile?.id ?? pb.authStore.record?.id ?? ""}-${generateUUID()}.${getImageFileExtension(avatar.mimeType)}`;
 
 			// @ts-ignore
 			data.set("avatar", {
@@ -105,7 +120,15 @@ const ProfileEditor = ({ profile }: { profile: UsersResponse }) => {
 
 		try {
 			setUpdating(true);
-			await pb.collection("users").update(profile.id, data);
+			let userPersonRecord: PersonsResponse;
+			if (profile) {
+				userPersonRecord = await pb
+					.collection("persons")
+					.update(profile.id, data);
+			} else {
+				userPersonRecord = await pb.collection("persons").create(data);
+			}
+			setUserPerson(userPersonRecord);
 			setEditProfile(false);
 		} catch (err) {
 			console.error("Error uploading to PocketBase:", err);
@@ -117,7 +140,7 @@ const ProfileEditor = ({ profile }: { profile: UsersResponse }) => {
 	const Buttons = () => {
 		if (editProfile)
 			return (
-				<>
+				<Fragment>
 					<Button
 						label="Save"
 						style={styles.saveButton}
@@ -130,7 +153,7 @@ const ProfileEditor = ({ profile }: { profile: UsersResponse }) => {
 					>
 						<TabBarIcon name="close" style={styles.editIcon} />
 					</TouchableOpacity>
-				</>
+				</Fragment>
 			);
 
 		return (
@@ -145,7 +168,7 @@ const ProfileEditor = ({ profile }: { profile: UsersResponse }) => {
 
 	// This is intentionally not written as a function component, as doing so causes the BottomSheetTextInput to close the keyboard on the first keystroke (which is undesired behavior)
 	const EditName = editProfile ? (
-		<>
+		<Fragment>
 			<ImageUploadButton
 				style={styles.uploadImageButton}
 				setImage={setAvatar}
@@ -158,7 +181,7 @@ const ProfileEditor = ({ profile }: { profile: UsersResponse }) => {
 					onChangeText={setName}
 				/>
 			</View>
-		</>
+		</Fragment>
 	) : (
 		<Text style={[typography.h3, { marginTop: 12 }]}>{name}</Text>
 	);
@@ -167,25 +190,31 @@ const ProfileEditor = ({ profile }: { profile: UsersResponse }) => {
 		<BottomSheetView>
 			<ConditionalActivityIndicator isVisible={isUpdating} />
 
-			<View style={[bottomsheetStyles.paddingTop, bottomsheetStyles.paddingHorizontal, styles.profile]}>
+			<View
+				style={[
+					bottomsheetStyles.paddingTop,
+					bottomsheetStyles.paddingHorizontal,
+					styles.profile,
+				]}
+			>
 				<Buttons />
 				<Avatar uri={avatar?.uri || avatarUri} size="xlarge" />
 				{EditName}
-				<EmailWithVerifiedIcon profile={profile} />
+				<EmailWithVerifiedIcon user={user} />
 			</View>
 
 			<View style={styles.profileLinks}>
-				<ProfileLinks profile={profile} />
+				<ProfileLinks user={user} />
 			</View>
 		</BottomSheetView>
 	);
 };
 
-const EmailWithVerifiedIcon = ({ profile }: { profile: UsersResponse }) => {
+const EmailWithVerifiedIcon = ({ user }: { user: UsersResponse }) => {
 	return (
 		<View style={{ flexDirection: "row", gap: 4 }}>
-			<Text>{profile.email}</Text>
-			{profile.verified ? (
+			<Text>{user.email}</Text>
+			{user.verified ? (
 				<TabBarIcon
 					name="checkmark-circle"
 					style={[styles.green, styles.icon]}
@@ -209,7 +238,7 @@ const ConditionalActivityIndicator = ({
 	return null;
 };
 
-const ProfileLinks = ({ profile }: { profile: UsersResponse }) => {
+const ProfileLinks = ({ user }: { user: UsersResponse }) => {
 	return (
 		<FullWidthGreyBorderButton
 			onPress={() => {
@@ -218,7 +247,7 @@ const ProfileLinks = ({ profile }: { profile: UsersResponse }) => {
 		>
 			<Text>Change email address</Text>
 			<Text numberOfLines={1} ellipsizeMode="tail" style={styles.emailText}>
-				{profile.email}
+				{user.email}
 			</Text>
 			<TabBarIcon name="arrow-forward" style={styles.icon} />
 		</FullWidthGreyBorderButton>

@@ -7,17 +7,19 @@ const getAuthStateFromPocketBaseSDK: AtomEffect<boolean> = ({
 	trigger,
 	setSelf,
 }) => {
+	console.log("Running getAuthStateFromPocketBaseSDK Effect")
 	if (trigger === "get") {
 		if (pb.authStore.isValid) {
 			pb.collection("users").authRefresh().then(() => {
+				console.log("User is authenticated");
 				setSelf(true);
 			}).catch(() => {
+				console.log("Error on authRefresh: User is not authenticated");
 				pb.authStore.clear();
-				setSelf(false);
 			});
 		} else {
+			console.log("No Token or is expired: User is not authenticated - needs to re-login");
 			pb.authStore.clear();
-			setSelf(false);
 		}
 	}
 };
@@ -32,6 +34,7 @@ const getUserFromPocketBaseSDK: AtomEffect<UsersResponse | null> = ({
 	trigger,
 	setSelf,
 }) => {
+	console.log("Running getUserFromPocketBaseSDK Effect");
 	if (trigger === "get") {
 		if (pb.authStore.isValid) {
 			setSelf(pb.authStore.record as UsersResponse);
@@ -46,6 +49,7 @@ const getUserPersonFromPocketBaseSDK: AtomEffect<PersonsResponse | null> = ({
 	trigger,
 	setSelf,
 }) => {
+	console.log("Running getUserPersonFromPocketBaseSDK Effect");
 	if (trigger === "get") {
 		if (pb.authStore.record?.id) {
 			pb.collection("persons")

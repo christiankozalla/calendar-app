@@ -18,7 +18,7 @@ import {
 } from "react-native";
 import { PbOperations } from "@/api/pocketbase";
 import type { CalendarsResponse } from "@/api/pocketbase-types";
-import { Redirect, useRouter } from "expo-router";
+import { Redirect, Link } from "expo-router";
 import { useRecoilValue } from "recoil";
 import { AuthState, UserState } from "@/store/Authentication";
 import { Header } from "@/components/Header";
@@ -56,8 +56,6 @@ const CalendarList = ({
 	bottomSheetRef,
 	setBottomSheetContent,
 }: CalendarListProps) => {
-	const router = useRouter();
-
 	const groupSections = (
 		calendars: CalendarsResponse<never>[],
 	): SectionListData<CalendarsResponse<never>>[] => {
@@ -108,13 +106,9 @@ const CalendarList = ({
 										<TabBarIcon name="settings-outline" size={18} />
 									</TouchableOpacity>
 								</View>
-								<TouchableOpacity
-									onPress={() => {
-										router.push(`/calendars/${c.id}`);
-									}}
-								>
+								<Link href={`/calendars/${c.id}`}>
 									<TabBarIcon name="arrow-forward" size={18} />
-								</TouchableOpacity>
+								</Link>
 							</View>
 						</View>
 					</View>
@@ -130,6 +124,8 @@ export default function HomeScreen() {
 	const [calendars, setCalendars] = useState<CalendarsResponse<never>[]>([]);
 	const [bottomSheetContent, setBottomSheetContent] = useState<ReactNode>();
 	const bottomSheetRef = useRef<BottomSheetModal>(null);
+
+	console.log("Rendering HomeScreen");
 
 	useEffect(() => {
 		if (user?.id) {

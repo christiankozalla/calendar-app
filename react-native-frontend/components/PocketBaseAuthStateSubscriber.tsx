@@ -3,9 +3,10 @@ import { AuthState, UserState } from "@/store/Authentication";
 import { pb } from "@/api/pocketbase";
 import type { UsersResponse } from "@/api/pocketbase-types";
 import { useRecoilState, useSetRecoilState } from "recoil";
-import { Redirect } from "expo-router";
+import { Redirect, usePathname } from "expo-router";
 
 export const PocketBaseAuthStateSubscriber = () => {
+	const currentPath = usePathname();
 	const [isAuthenticated, setAuthState] = useRecoilState(AuthState);
 	const setUserState = useSetRecoilState(UserState);
 
@@ -21,7 +22,7 @@ export const PocketBaseAuthStateSubscriber = () => {
 		};
 	}, []);
 
-	if (!isAuthenticated) {
+	if (!currentPath.startsWith("/login-signup") && !isAuthenticated) {
 		return <Redirect href="/login-signup" />;
 	}
 

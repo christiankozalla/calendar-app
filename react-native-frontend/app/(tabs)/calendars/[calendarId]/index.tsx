@@ -9,7 +9,7 @@ import {
 import { pb, PbOperations } from "@/api/pocketbase";
 import type { EventsResponse, PersonsResponse } from "@/api/pocketbase-types";
 import { Link, useGlobalSearchParams } from "expo-router";
-import { useRecoilState, useRecoilValue, useSetRecoilState } from "recoil";
+import { useRecoilState, useRecoilValue } from "recoil";
 import { isSameDay } from "date-fns";
 import {
 	inRange,

@@ -49,7 +49,10 @@ export const ConfigureCalendarPanel = ({
 			setLoading(true);
 			const calendarFromState = calendars[calendarId];
 
-			if (!calendarFromState) {
+			if (
+				!calendarFromState?.expand ||
+				!hasRequiredProperties(calendarFromState.expand)
+			) {
 				const calendarResponse = await PbOperations.getCalendarDetails(
 					calendarId,
 					setCalendars,
@@ -58,6 +61,10 @@ export const ConfigureCalendarPanel = ({
 				if ("error" in calendarResponse) {
 					// show error screen
 					console.error("ConfigureCalendarPanel", calendarResponse.error);
+					setCalendars((prev) => {
+						const { [calendarId]: _, ...rest } = prev;
+						return rest;
+					});
 				}
 			}
 			setLoading(false);
@@ -65,9 +72,6 @@ export const ConfigureCalendarPanel = ({
 	}, [calendarId]);
 
 	const updateCalendar = useCallback(async () => {
-		if (!calendars[calendarId]) {
-			return;
-		}
 		try {
 			setLoading(true);
 			const updatedCalendar = await pb
@@ -108,7 +112,49 @@ export const ConfigureCalendarPanel = ({
 			],
 			{ cancelable: true },
 		);
-	}, [calendars, calendarId]);
+	}, [calendarId]);
+
+	const removePersonFromCalendarHandler = (p: PersonsResponse) => () => {
+		Alert.alert(
+			"Confirm Remove",
+			`Are you sure you want to remove ${p.name || p.user ? "this user" : "this person"} from the calendar?`,
+			[
+				{
+					text: "Cancel",
+					style: "cancel",
+				},
+				{
+					text: "Remove",
+					onPress: () => removePersonFromCalendar(p),
+					style: "destructive",
+				},
+			],
+			{ cancelable: true },
+		);
+	};
+
+	const removePersonFromCalendar = async (p: PersonsResponse) => {
+		setLoading(true);
+		if (p.user) {
+			PbOperations.removeUserFromCalendar(
+				calendars[calendarId].id,
+				p.user,
+				p.id,
+				setCalendars,
+			).finally(() => {
+				setLoading(false);
+			});
+		} else {
+			// if it is an ordinary person
+			PbOperations.removePersonFromCalendar(
+				calendars[calendarId].id,
+				p.id,
+				setCalendars,
+			).finally(() => {
+				setLoading(false);
+			});
+		}
+	};
 
 	if (loading) {
 		return <ActivityIndicator />;
@@ -153,39 +199,26 @@ export const ConfigureCalendarPanel = ({
 				<Text style={styles.owner}>Created by {ownersName}</Text>
 
 				<BottomSheetFlatList
-					ListEmptyComponent={<Text>No persons in your calendar yet...</Text>}
+					ListEmptyComponent={<Text>No persons in the calendar yet...</Text>}
 					keyExtractor={(p) => p.id}
 					data={calendars[calendarId].expand?.persons}
 					renderItem={({ item: p }: { item: PersonWithUserId }) => (
 						<View style={styles.userListItem}>
-							<Text style={styles.userName}>{p.name}</Text>
-							<TouchableOpacity
-								onPress={() => {
-									setLoading(true);
-									if (p.user) {
-										// if it is a UserPerson (virtual person representing a user)
-										PbOperations.removeUserFromCalendar(
-											calendars[calendarId].id,
-											p.user,
-											p.id,
-											setCalendars,
-										).finally(() => {
-											setLoading(false);
-										});
-									} else {
-										// if it is an ordinary person
-										PbOperations.removePersonFromCalendar(
-											calendars[calendarId].id,
-											p.id,
-											setCalendars,
-										).finally(() => {
-											setLoading(false);
-										});
-									}
-								}}
-							>
-								<TabBarIcon name="remove-circle" style={styles.icon} />
-							</TouchableOpacity>
+							<Text style={styles.userName}>
+								{p.name}{" "}
+								{p.user && p.user === calendars[calendarId].owner
+									? "(owner)"
+									: pb.authStore.record?.id === p.user ? "(you)" : "(user)"}
+							</Text>
+							{/* if dont display the delete button if it is the owners person - but maybe we want to allow the owner of a calendar to decide not to "participate" in a calendar, i.e. not have its userPerson in the calendar...! */}
+							{p.user !== calendars[calendarId].owner && (
+								<TouchableOpacity
+									style={styles.deleteButton}
+									onPress={removePersonFromCalendarHandler(p)}
+								>
+									<TabBarIcon name="remove-circle" style={styles.icon} />
+								</TouchableOpacity>
+							)}
 						</View>
 					)}
 				/>
@@ -217,7 +250,8 @@ const styles = StyleSheet.create({
 		flex: 1,
 		flexDirection: "row",
 		justifyContent: "space-between",
-		fontSize: 16,
+		fontSize: 24,
+		padding: 4,
 	},
 	icon: {
 		fontSize: 16,
@@ -253,3 +287,13 @@ const styles = StyleSheet.create({
 		paddingBottom: 12,
 	},
 });
+
+function hasRequiredProperties(obj: unknown): boolean {
+	return (
+		typeof obj === "object" &&
+		obj !== null &&
+		"users" in obj &&
+		"owner" in obj &&
+		"persons" in obj
+	);
+}

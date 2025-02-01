@@ -145,6 +145,7 @@ export type EventsByMessageRecord<Tmost_recent_message_time = unknown> = {
 	calendar_users?: RecordIdString[];
 	created?: IsoDateString;
 	id: string;
+	most_recent_message_text?: string;
 	most_recent_message_time?: null | Tmost_recent_message_time;
 	title?: string;
 };

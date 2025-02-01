@@ -1,11 +1,5 @@
 import type { Dispatch, ReactNode, SetStateAction } from "react";
-import {
-	View,
-	Text,
-	FlatList,
-	StyleSheet,
-	Dimensions,
-} from "react-native";
+import { View, Text, FlatList, StyleSheet, Dimensions } from "react-native";
 import type { EventsResponse, PersonsResponse } from "@/api/pocketbase-types";
 import { TabBarIcon } from "./navigation/TabBarIcon";
 import {
@@ -69,7 +63,10 @@ export const EventListPanel = ({
 				<View style={styles.row}>
 					<TabBarIcon name="calendar" style={styles.icon} />
 					<Text style={styles.text}>
-						{new Date(event.startDatetime).toLocaleString(undefined, { dateStyle: "short", timeStyle: "short" })}
+						{new Date(event.startDatetime).toLocaleString(undefined, {
+							dateStyle: "short",
+							timeStyle: "short",
+						})}
 					</Text>
 				</View>
 			)}

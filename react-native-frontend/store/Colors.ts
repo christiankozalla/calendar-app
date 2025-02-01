@@ -10,18 +10,24 @@ export const ColorsState = atom<Colors>({
 	effects: [
 		({ trigger, setSelf }) => {
 			if (trigger === "get") {
-				pb.collection("colors").getFullList().then((colorsResponse) => {
-					setSelf(
-						colorsResponse.reduce(
-							(colors, current) => {
-								colors[current.id] = { id: current.id, hex: current.hex, name: current.name };
-								return colors;
-							},
-							{} as { [id: string]: ColorsRecord },
-						),
-					);
-				});
+				pb.collection("colors")
+					.getFullList()
+					.then((colorsResponse) => {
+						setSelf(
+							colorsResponse.reduce(
+								(colors, current) => {
+									colors[current.id] = {
+										id: current.id,
+										hex: current.hex,
+										name: current.name,
+									};
+									return colors;
+								},
+								{} as { [id: string]: ColorsRecord },
+							),
+						);
+					});
 			}
-		}
-	]
+		},
+	],
 });

@@ -7,18 +7,23 @@ const getAuthStateFromPocketBaseSDK: AtomEffect<boolean> = ({
 	trigger,
 	setSelf,
 }) => {
-	console.log("Running getAuthStateFromPocketBaseSDK Effect")
+	console.log("Running getAuthStateFromPocketBaseSDK Effect");
 	if (trigger === "get") {
 		if (pb.authStore.isValid) {
-			pb.collection("users").authRefresh().then(() => {
-				console.log("User is authenticated");
-				setSelf(true);
-			}).catch(() => {
-				console.log("Error on authRefresh: User is not authenticated");
-				pb.authStore.clear();
-			});
+			pb.collection("users")
+				.authRefresh()
+				.then(() => {
+					console.log("User is authenticated");
+					setSelf(true);
+				})
+				.catch(() => {
+					console.log("Error on authRefresh: User is not authenticated");
+					pb.authStore.clear();
+				});
 		} else {
-			console.log("No Token or is expired: User is not authenticated - needs to re-login");
+			console.log(
+				"No Token or is expired: User is not authenticated - needs to re-login",
+			);
 			pb.authStore.clear();
 		}
 	}
@@ -36,6 +41,7 @@ const getUserFromPocketBaseSDK: AtomEffect<UsersResponse | null> = ({
 }) => {
 	console.log("Running getUserFromPocketBaseSDK Effect");
 	if (trigger === "get") {
+		console.log("getUserFromPocketBaseSDK setting user on get trigger");
 		if (pb.authStore.isValid) {
 			setSelf(pb.authStore.record as UsersResponse);
 		} else {
@@ -53,7 +59,9 @@ const getUserPersonFromPocketBaseSDK: AtomEffect<PersonsResponse | null> = ({
 	if (trigger === "get") {
 		if (pb.authStore.record?.id) {
 			pb.collection("persons")
-				.getFirstListItem<PersonsResponse>(pb.filter("user = {:userId}", { userId: pb.authStore.record.id }))
+				.getFirstListItem<PersonsResponse>(
+					pb.filter("user = {:userId}", { userId: pb.authStore.record.id }),
+				)
 				.then(setSelf)
 				.catch((err) => {
 					console.error("Error getting user person", err?.data || err);
@@ -61,17 +69,17 @@ const getUserPersonFromPocketBaseSDK: AtomEffect<PersonsResponse | null> = ({
 				});
 		}
 	}
-}
+};
 
 export const UserState = atom({
 	key: "User",
 	default: null,
-	effects: [getUserFromPocketBaseSDK]
+	effects: [getUserFromPocketBaseSDK],
 });
 
 // The person record associated with the current user
 export const UserPersonState = atom({
 	key: "UserPerson",
 	default: null,
-	effects: [getUserPersonFromPocketBaseSDK]
+	effects: [getUserPersonFromPocketBaseSDK],
 });

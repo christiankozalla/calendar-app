@@ -1,4 +1,11 @@
-import { useCallback, useRef, useState, useEffect, useMemo, type ReactNode } from "react";
+import {
+	useCallback,
+	useRef,
+	useState,
+	useEffect,
+	useMemo,
+	type ReactNode,
+} from "react";
 import {
 	View,
 	Text,
@@ -29,15 +36,16 @@ import { CalendarsState } from "@/store/Calendars";
 import { Avatar } from "@/components/Avatar";
 import { bottomsheetStyles } from "@/utils/bottomsheetStyles";
 
-const findEventsForDay = (
-	events: EventWithPersons[],
-	day: Date | string,
-) => {
+const findEventsForDay = (events: EventWithPersons[], day: Date | string) => {
 	day = typeof day === "string" ? new Date(day) : day;
 	return events?.filter((e) => {
 		return !e.endDatetime
 			? isSameDay(day, e.startDatetime)
-			: inRange(day as Date, new Date(e.startDatetime), new Date(e.endDatetime));
+			: inRange(
+					day as Date,
+					new Date(e.startDatetime),
+					new Date(e.endDatetime),
+				);
 	});
 };
 
@@ -65,7 +73,10 @@ export default function CalendarScreen() {
 	useEffect(() => {
 		if (calendarId) {
 			setLoading(true);
-			const refreshCalendarState = PbOperations.getCalendarDetails(calendarId, setCalendars);
+			const refreshCalendarState = PbOperations.getCalendarDetails(
+				calendarId,
+				setCalendars,
+			);
 			const eventsRequest = pb
 				.collection("events")
 				.getList<EventWithPersons>(undefined, undefined, {
@@ -91,40 +102,42 @@ export default function CalendarScreen() {
 	useEffect(() => {
 		const subscribeToEvents = async () => {
 			if (calendarId) {
-				const unsubscribe = await pb.collection("events").subscribe<EventWithPersons>(
-					"*",
-					(collection) => {
-						switch (collection.action) {
-							case "create":
-								setEvents((events) => [...(events ?? []), collection.record]);
-								break;
+				const unsubscribe = await pb
+					.collection("events")
+					.subscribe<EventWithPersons>(
+						"*",
+						(collection) => {
+							switch (collection.action) {
+								case "create":
+									setEvents((events) => [...(events ?? []), collection.record]);
+									break;
 
-							case "update":
-								setEvents((events) => [
-									...(events ?? []).filter(
-										(e) => e.id !== collection.record.id,
-									),
-									collection.record,
-								]);
-								break;
+								case "update":
+									setEvents((events) => [
+										...(events ?? []).filter(
+											(e) => e.id !== collection.record.id,
+										),
+										collection.record,
+									]);
+									break;
 
-							case "delete":
-								setEvents((events) => [
-									...(events ?? []).filter(
-										(e) => e.id !== collection.record.id,
-									),
-								]);
-								break;
+								case "delete":
+									setEvents((events) => [
+										...(events ?? []).filter(
+											(e) => e.id !== collection.record.id,
+										),
+									]);
+									break;
 
-							default:
-								console.error("Unhandled action:", collection.action);
-						}
-					},
-					{
-						filter: pb.filter("calendar = {:calendarId}", { calendarId }),
-						expand: "persons",
-					},
-				);
+								default:
+									console.error("Unhandled action:", collection.action);
+							}
+						},
+						{
+							filter: pb.filter("calendar = {:calendarId}", { calendarId }),
+							expand: "persons",
+						},
+					);
 				return unsubscribe;
 			}
 		};
@@ -149,7 +162,7 @@ export default function CalendarScreen() {
 					0,
 				).toISOString(),
 				calendar: calendarId,
-				allPersons: calendarFromBackend.expand?.persons ?? []
+				allPersons: calendarFromBackend.expand?.persons ?? [],
 			};
 			setBottomSheetContent(<EventCreateUpdatePanel {...props} />);
 			bottomSheetRef.current?.present();

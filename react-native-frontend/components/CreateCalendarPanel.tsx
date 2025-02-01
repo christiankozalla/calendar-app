@@ -10,8 +10,12 @@ import { generateUUID } from "@/utils/uuid";
 import { bottomsheetStyles } from "@/utils/bottomsheetStyles";
 
 type Props = {
-	onSuccess: ReturnType<typeof Promise.withResolvers<CalendarsResponse<never>>>["resolve"];
-	onFailure: ReturnType<typeof Promise.withResolvers<CalendarsResponse<never>>>["reject"];
+	onSuccess: ReturnType<
+		typeof Promise.withResolvers<CalendarsResponse<never>>
+	>["resolve"];
+	onFailure: ReturnType<
+		typeof Promise.withResolvers<CalendarsResponse<never>>
+	>["reject"];
 };
 
 export const CreateCalendarPanel = ({ onSuccess, onFailure }: Props) => {
@@ -21,9 +25,11 @@ export const CreateCalendarPanel = ({ onSuccess, onFailure }: Props) => {
 	const createCalendar = async () => {
 		if (!pb.authStore.record?.id || !name.trim()) return;
 
-		const newCalendarResponse = await PbOperations.createCalendar(
-			{ id, name, owner: pb.authStore.record.id },
-		);
+		const newCalendarResponse = await PbOperations.createCalendar({
+			id,
+			name,
+			owner: pb.authStore.record.id,
+		});
 
 		if ("error" in newCalendarResponse) {
 			// show error screen

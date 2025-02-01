@@ -53,6 +53,6 @@ const styles = StyleSheet.create({
 		paddingHorizontal: 26,
 		borderRadius: 26,
 		height: 44,
-		fontWeight: "bold"
+		fontWeight: "bold",
 	},
 });

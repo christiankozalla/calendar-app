@@ -98,7 +98,10 @@ const CalendarList = ({
 									<TouchableOpacity
 										onPress={() => {
 											setBottomSheetContent(
-												<ConfigureCalendarPanel calendarId={c.id} setCalendars={setCalendars} />,
+												<ConfigureCalendarPanel
+													calendarId={c.id}
+													setCalendars={setCalendars}
+												/>,
 											);
 											bottomSheetRef.current?.present();
 										}}
@@ -143,7 +146,7 @@ export default function HomeScreen() {
 	const createCalendar = async () => {
 		const { promise, resolve, reject } =
 			Promise.withResolvers<CalendarsResponse<never>>();
-			
+
 		setBottomSheetContent(
 			<CreateCalendarPanel onSuccess={resolve} onFailure={reject} />,
 		);

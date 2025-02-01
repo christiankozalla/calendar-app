@@ -25,8 +25,8 @@ const sizes = {
 		},
 		icon: {
 			fontSize: 124,
-		}
-	}
+		},
+	},
 };
 
 export const Avatar = ({

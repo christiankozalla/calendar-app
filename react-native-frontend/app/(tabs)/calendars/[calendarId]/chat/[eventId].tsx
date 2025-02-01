@@ -1,9 +1,9 @@
-import { View, Text } from 'react-native';
+import { View, Text } from "react-native";
 
 export default function EventChat() {
-    return (
-        <View>
-            <Text>Event Chat</Text>
-        </View>
-    );
+	return (
+		<View>
+			<Text>Event Chat</Text>
+		</View>
+	);
 }

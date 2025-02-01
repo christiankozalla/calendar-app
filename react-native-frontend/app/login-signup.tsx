@@ -18,6 +18,7 @@ import { type JwtBaseClaims, parse } from "@/utils/jwt";
 import { globalstyles } from "@/utils/globalstyles";
 import { StatusBar } from "expo-status-bar";
 import type { PersonsRecord } from "@/api/pocketbase-types";
+import { KeyboardAvoidingComponent } from "@/components/KeyboardAvoidingComponent";
 
 type SignupData = {
 	email: string;
@@ -100,9 +101,10 @@ export default function LoginSignup() {
 		}
 	};
 
-	if (isAuthenticated) {
+	if (isAuthenticated && !inviteToken) {
 		return <Redirect href="/" />;
 	}
+	// TODO: If condition (isuthenticated && inviteToken) is true (i.e. already registered user with invite token) then show just a screen for the user to complete the invitation
 
 	return (
 		<SafeAreaView style={globalstyles.safeArea}>
@@ -129,47 +131,49 @@ export default function LoginSignup() {
 						<View style={styles.callout}>
 							<Text>
 								{inviterInfo.inviterName || "Your friend"} (
-								{inviterInfo.inviterEmail}) invited you to CalenShare!
+								{inviterInfo.inviterEmail}) invited you to Suntimes!
 							</Text>
 							<Text>Signup so you can enjoy sharing a calendar :D</Text>
 						</View>
 					)}
-					{activeTab === "signup" && (
+					<KeyboardAvoidingComponent>
+						{activeTab === "signup" && (
+							<TextInput
+								style={styles.input}
+								placeholder="Name"
+								value={name}
+								onChangeText={setName}
+								placeholderTextColor="#999"
+							/>
+						)}
 						<TextInput
 							style={styles.input}
-							placeholder="Name"
-							value={name}
-							onChangeText={setName}
+							placeholder="Email"
+							value={email}
+							onChangeText={setEmail}
+							keyboardType="email-address"
+							editable={!inviteToken}
 							placeholderTextColor="#999"
 						/>
-					)}
-					<TextInput
-						style={styles.input}
-						placeholder="Email"
-						value={email}
-						onChangeText={setEmail}
-						keyboardType="email-address"
-						editable={!inviteToken}
-						placeholderTextColor="#999"
-					/>
-					<TextInput
-						style={styles.input}
-						placeholder="Password"
-						value={password}
-						onChangeText={setPassword}
-						secureTextEntry
-						placeholderTextColor="#999"
-					/>
-					{activeTab === "signup" && (
 						<TextInput
 							style={styles.input}
-							placeholder="Confirm Password"
-							value={passwordConfirm}
-							onChangeText={setPasswordConfirm}
+							placeholder="Password"
+							value={password}
+							onChangeText={setPassword}
 							secureTextEntry
 							placeholderTextColor="#999"
 						/>
-					)}
+						{activeTab === "signup" && (
+							<TextInput
+								style={styles.input}
+								placeholder="Confirm Password"
+								value={passwordConfirm}
+								onChangeText={setPasswordConfirm}
+								secureTextEntry
+								placeholderTextColor="#999"
+							/>
+						)}
+					</KeyboardAvoidingComponent>
 					<TouchableOpacity style={styles.button} onPress={handleSubmit}>
 						{loading && <ActivityIndicator color="white" />}
 						<Text style={styles.buttonText}>
@@ -196,7 +200,8 @@ export default function LoginSignup() {
 const styles = StyleSheet.create({
 	container: {
 		flex: 1,
-		padding: 20,
+		paddingTop: 48,
+		paddingHorizontal: 20,
 	},
 	box: {
 		backgroundColor: "white",

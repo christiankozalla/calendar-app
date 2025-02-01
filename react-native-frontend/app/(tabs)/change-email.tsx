@@ -6,4 +6,4 @@ export default function ChangeEmailPage() {
 			<Text>CHange Email</Text>
 		</View>
 	);
-};
+}

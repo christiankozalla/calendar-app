@@ -1,24 +1,33 @@
-import { type StyleProp, StyleSheet, TouchableOpacity, type ViewProps } from "react-native";
+import {
+	type StyleProp,
+	StyleSheet,
+	TouchableOpacity,
+	type ViewProps,
+} from "react-native";
 import type { PropsWithChildren } from "react";
 
 type Props = PropsWithChildren<{
-    onPress: () => void;
-    style?: StyleProp<ViewProps>
-}>
+	onPress: () => void;
+	style?: StyleProp<ViewProps>;
+}>;
 
-export const FullWidthGreyBorderButton = ({ children, style, onPress }: Props) => {
+export const FullWidthGreyBorderButton = ({
+	children,
+	style,
+	onPress,
+}: Props) => {
 	return (
 		<TouchableOpacity
 			style={[styles.flexRowGrow, styles.greyborderButton, style]}
 			onPress={onPress}
 		>
-            {children}
+			{children}
 		</TouchableOpacity>
 	);
 };
 
 const styles = StyleSheet.create({
-    flexRowGrow: {
+	flexRowGrow: {
 		flexGrow: 1,
 		gap: 4,
 		flexDirection: "row",
@@ -33,4 +42,4 @@ const styles = StyleSheet.create({
 		padding: 12,
 		marginTop: 16,
 	},
-})
+});

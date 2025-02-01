@@ -6,7 +6,10 @@ export const getTextColorBasedOnBg = (hex: string) => {
 
 	// Convert 3-digit hex to 6-digit hex
 	if (hex.length === 3) {
-	  hex = hex.split('').map(char => char + char).join('');
+		hex = hex
+			.split("")
+			.map((char) => char + char)
+			.join("");
 	}
 
 	const r = Number.parseInt(hex.slice(0, 2), 16);
@@ -25,7 +28,5 @@ export const getTextColorBasedOnBg = (hex: string) => {
 // Helper function to convert RGB values to a linear scale
 const getRelativeChannel = (value: number) => {
 	value /= 255;
-	return value <= 0.03928
-		? value / 12.92
-		: ((value + 0.055) / 1.055) ** 2.4;
+	return value <= 0.03928 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4;
 };

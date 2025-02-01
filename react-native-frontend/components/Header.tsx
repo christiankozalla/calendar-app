@@ -6,11 +6,7 @@ type HeaderProps = {
 };
 
 export const Header = ({ children, style }: HeaderProps) => {
-	return (
-		<View style={[styles.header, style]}>
-			{children}
-		</View>
-	);
+	return <View style={[styles.header, style]}>{children}</View>;
 };
 
 const styles = StyleSheet.create({

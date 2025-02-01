@@ -15,10 +15,7 @@ import {
 	BottomSheetView,
 	BottomSheetTextInput,
 } from "@gorhom/bottom-sheet";
-import type {
-	PersonsResponse,
-	UsersResponse,
-} from "@/api/pocketbase-types";
+import type { PersonsResponse, UsersResponse } from "@/api/pocketbase-types";
 import {
 	type SetterOrUpdater,
 	useRecoilState,

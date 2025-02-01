@@ -19,11 +19,13 @@ export const CreatePerson = ({ calendar }: Props) => {
 		};
 
 		try {
-			const newPerson = await pb
-				.collection("persons")
-				.create(personData);
+			const newPerson = await pb.collection("persons").create(personData);
 
-				await PbOperations.addPersonToCalendar(calendar, newPerson, setCalendarsState);
+			await PbOperations.addPersonToCalendar(
+				calendar,
+				newPerson,
+				setCalendarsState,
+			);
 
 			setName(""); // Clear input after successful submission
 		} catch (error) {

@@ -215,8 +215,12 @@ class Operations {
 		}
 	}
 
-	public async createMessageForEvent(message: Required<Pick<MessagesRecord, "event" | "author" | "text">>) {
-		return this.catchError(() => this.pb.collection(Collections.Messages).create(message));
+	public async createMessageForEvent(
+		message: Required<Pick<MessagesRecord, "event" | "author" | "text">>,
+	) {
+		return this.catchError(() =>
+			this.pb.collection(Collections.Messages).create(message),
+		);
 	}
 
 	private async catchError<T>(operation: () => Promise<T>) {

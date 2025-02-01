@@ -11,15 +11,18 @@ export const setDateWithCurrentTime = (dateString: string | Date): Date => {
 	date.setHours(now.getHours(), now.getMinutes());
 
 	return date;
-}
+};
 
-export const roundToNearestHour = (date: Date | string, offset: number): Date => {
+export const roundToNearestHour = (
+	date: Date | string,
+	offset: number,
+): Date => {
 	const result = new Date(date);
 	result.setMinutes(0, 0, 0);
 	result.setHours(result.getHours() + offset);
 
 	return result;
-}
+};
 
 export const mergeDates = (dateInput: Date, timeInput: Date): Date => {
 	// Extract day components from `dateWithDay`
@@ -38,13 +41,21 @@ export const mergeDates = (dateInput: Date, timeInput: Date): Date => {
 export const toDateString = (date: Date | string): string => {
 	const theDate = parseDate(date);
 	if (!theDate) return "";
-	return theDate.toLocaleDateString(undefined, { year: "numeric", month: "2-digit", day: "numeric", weekday: "short" });
+	return theDate.toLocaleDateString(undefined, {
+		year: "numeric",
+		month: "2-digit",
+		day: "numeric",
+		weekday: "short",
+	});
 };
 
 export const toTimeString = (date: Date | string): string => {
 	const theDate = parseDate(date);
 	if (!theDate) return "";
-	return theDate.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" });
+	return theDate.toLocaleTimeString(undefined, {
+		hour: "2-digit",
+		minute: "2-digit",
+	});
 };
 
 const parseDate = (date: Date | string): Date | null => {
@@ -55,4 +66,4 @@ const parseDate = (date: Date | string): Date | null => {
 		console.log("not a date", date);
 		return null;
 	}
-}
+};

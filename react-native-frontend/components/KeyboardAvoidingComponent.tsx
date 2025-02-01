@@ -5,7 +5,7 @@ import {
 	Platform,
 	TouchableWithoutFeedback,
 	Keyboard,
-    type ViewStyle,
+	type ViewStyle,
 } from "react-native";
 
 export const KeyboardAvoidingComponent = ({
@@ -23,4 +23,3 @@ export const KeyboardAvoidingComponent = ({
 		</KeyboardAvoidingView>
 	);
 };
-

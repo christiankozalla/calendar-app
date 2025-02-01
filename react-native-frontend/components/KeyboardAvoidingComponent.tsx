@@ -2,7 +2,6 @@ import type { ReactNode } from "react";
 import {
 	View,
 	KeyboardAvoidingView,
-	StyleSheet,
 	Platform,
 	TouchableWithoutFeedback,
 	Keyboard,

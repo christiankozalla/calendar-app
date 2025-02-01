@@ -1,4 +1,4 @@
-import { Fragment, useCallback, useMemo, useRef, useState } from "react";
+import { Fragment, useCallback, useRef, useState } from "react";
 import {
 	ActivityIndicator,
 	View,
@@ -15,8 +15,16 @@ import {
 	BottomSheetView,
 	BottomSheetTextInput,
 } from "@gorhom/bottom-sheet";
-import type { PersonsResponse, UsersResponse } from "@/api/pocketbase-types";
-import { type SetterOrUpdater, useRecoilState, useRecoilValue } from "recoil";
+import type {
+	PersonsResponse,
+	UsersResponse,
+} from "@/api/pocketbase-types";
+import {
+	type SetterOrUpdater,
+	useRecoilState,
+	useRecoilValue,
+	useSetRecoilState,
+} from "recoil";
 import { UserPersonState, UserState } from "@/store/Authentication";
 import { Button } from "./Button";
 import { router } from "expo-router";
@@ -25,6 +33,7 @@ import { generateUUID } from "@/utils/uuid";
 import type { ImagePickerAsset } from "expo-image-picker";
 import { bottomsheetStyles } from "@/utils/bottomsheetStyles";
 import { FullWidthGreyBorderButton } from "./FullWidthGreyBorderButton";
+import { CalendarsState } from "@/store/Calendars";
 
 export const ProfileInfoPanel = () => {
 	// updating the user record with update pb.authStore.record AND UserState atom
@@ -84,6 +93,7 @@ const ProfileEditor = ({
 	profile: PersonsResponse | null;
 	setUserPerson: SetterOrUpdater<PersonsResponse | null>;
 }) => {
+	const setGlobalCalendars = useSetRecoilState(CalendarsState);
 	const [isUpdating, setUpdating] = useState(false);
 	const [editProfile, setEditProfile] = useState(false);
 	const [name, setName] = useState(profile?.name || "");
@@ -125,6 +135,30 @@ const ProfileEditor = ({
 				userPersonRecord = await pb
 					.collection("persons")
 					.update(profile.id, data);
+
+				// update global Recoil state (not sure if this is "worth it" saving a few backend requests)
+				// update every person object in every calendar of this user
+				setGlobalCalendars((prev) => {
+					console.log("new calendars", prev.expand?.persons);
+					const newCalendars = { ...prev };
+					for (const calendarId in newCalendars) {
+						if (newCalendars[calendarId].expand?.persons) {
+							newCalendars[calendarId] = {
+								...newCalendars[calendarId],
+								expand: {
+									...newCalendars[calendarId].expand,
+									persons: [
+										...newCalendars[calendarId].expand.persons.filter(
+											(p) => p.id !== userPersonRecord.id,
+										),
+										userPersonRecord,
+									],
+								},
+							};
+						}
+					}
+					return newCalendars;
+				});
 			} else {
 				userPersonRecord = await pb.collection("persons").create(data);
 			}
@@ -174,7 +208,7 @@ const ProfileEditor = ({
 				setImage={setAvatar}
 			/>
 			<View style={styles.input}>
-				<TabBarIcon name="pencil" style={{ fontSize: 18, marginTop: 6 }} />
+				<TabBarIcon name="pencil" style={{ fontSize: 18 }} />
 				<BottomSheetTextInput
 					style={typography.h3}
 					value={name}
@@ -323,9 +357,8 @@ const styles = StyleSheet.create({
 		gap: 8,
 		borderWidth: 1,
 		borderColor: "#ddd",
-		padding: 10,
-		paddingTop: 0,
-		borderRadius: 5,
+		paddingHorizontal: 10,
+		borderRadius: 6,
 		marginBottom: 10,
 	},
 	spinnerOverlay: {

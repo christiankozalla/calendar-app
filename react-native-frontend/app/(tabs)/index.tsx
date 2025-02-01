@@ -125,8 +125,6 @@ export default function HomeScreen() {
 	const [bottomSheetContent, setBottomSheetContent] = useState<ReactNode>();
 	const bottomSheetRef = useRef<BottomSheetModal>(null);
 
-	console.log("Rendering HomeScreen");
-
 	useEffect(() => {
 		if (user?.id) {
 			PbOperations.getAllCalendarsOwnedByAndUserIsPartOf(user?.id).then(
@@ -145,6 +143,7 @@ export default function HomeScreen() {
 	const createCalendar = async () => {
 		const { promise, resolve, reject } =
 			Promise.withResolvers<CalendarsResponse<never>>();
+			
 		setBottomSheetContent(
 			<CreateCalendarPanel onSuccess={resolve} onFailure={reject} />,
 		);

@@ -31,7 +31,7 @@ func OnBeforeCreateInvitation(app *pocketbase.PocketBase) func(*core.RecordReque
 				"iat":          time.Now().Unix(),
 			},
 			JWT_SECRET,
-			60*60*48,
+			48*time.Hour,
 		)
 
 		if err != nil {
@@ -80,6 +80,7 @@ func OnAfterUsersCreateHandleInvitation(app *pocketbase.PocketBase) func(*core.R
 		if !ok {
 			return fmt.Errorf("inviterId claim does not exist")
 		}
+
 		invitationRecord, err := app.FindFirstRecordByFilter("invitations", "invitee_email = {:inviteeEmail} && inviter = {:inviterId}", dbx.Params{"inviteeEmail": inviteeEmail, "inviterId": inviterId})
 
 		if err != nil {
@@ -96,11 +97,31 @@ func OnAfterUsersCreateHandleInvitation(app *pocketbase.PocketBase) func(*core.R
 			users := calendarRecord.GetStringSlice("users")
 			users = append(users, invitedUserId)
 			calendarRecord.Set("users", users)
+			app.Logger().Debug("OnAfterUsersCreateHandleInvitation", "calendarRecord", calendarRecord, "users", users)
+
+			userPerson, err := app.FindFirstRecordByFilter("persons", "user = {:userId}", dbx.Params{"userId": invitedUserId})
+
+			if err != nil {
+				app.Logger().Debug("OnAfterUsersCreateHandleInvitation querying userPerson", "error", err)
+				return err
+			}
+
+			calendarRecord.Set("persons", append(calendarRecord.GetStringSlice("persons"), userPerson.Id))
 
 			if err := app.Save(calendarRecord); err != nil {
+				app.Logger().Debug("OnAfterUsersCreateHandleInvitation", "error", err)
 				return err
 			}
 		}
+
+		app.Logger().Info("OnAfterUsersCreateHandleInvitation successfully added user to calendar(s)", "invitedUserId", invitedUserId, "calendarIds", calendarIds)
+
+		// delete the invitation record
+		if err := app.Delete(invitationRecord); err != nil {
+			return err
+		}
+
+		app.Logger().Info("OnAfterUsersCreateHandleInvitation successfully deleted invitation record", "invitationRecord", invitationRecord)
 
 		return nil
 	}

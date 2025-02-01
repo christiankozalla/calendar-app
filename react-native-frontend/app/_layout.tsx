@@ -3,6 +3,7 @@ import {
 	DefaultTheme,
 	ThemeProvider,
 } from "@react-navigation/native";
+import { SafeAreaProvider } from "react-native-safe-area-context";
 import { useFonts } from "expo-font";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
@@ -65,33 +66,35 @@ export default function RootLayout() {
 	}
 
 	return (
-		<ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
-			<RecoilRoot>
-				<PocketBaseAuthStateSubscriber />
-				<GestureHandlerRootView style={{ flex: 1 }}>
-					<BottomSheetModalProvider>
-						<Stack>
-							<Stack.Screen
-								name="login-signup"
-								options={{ headerShown: false }}
-							/>
-							<Stack.Screen
-								name="(tabs)/index"
-								options={{ headerShown: false }}
-							/>
-							<Stack.Screen
-								name="(tabs)/change-email"
-								options={{ headerShown: false }}
-							/>
-							<Stack.Screen
-								name="(tabs)/calendars/[calendarId]"
-								options={{ headerShown: false }}
-							/>
-							<Stack.Screen name="+not-found" />
-						</Stack>
-					</BottomSheetModalProvider>
-				</GestureHandlerRootView>
-			</RecoilRoot>
-		</ThemeProvider>
+		<SafeAreaProvider>
+			<ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
+				<RecoilRoot>
+					<PocketBaseAuthStateSubscriber />
+					<GestureHandlerRootView style={{ flex: 1 }}>
+						<BottomSheetModalProvider>
+							<Stack>
+								<Stack.Screen
+									name="login-signup"
+									options={{ headerShown: false }}
+								/>
+								<Stack.Screen
+									name="(tabs)/index"
+									options={{ headerShown: false }}
+								/>
+								<Stack.Screen
+									name="(tabs)/change-email"
+									options={{ headerShown: false }}
+								/>
+								<Stack.Screen
+									name="(tabs)/calendars/[calendarId]"
+									options={{ headerShown: false }}
+								/>
+								<Stack.Screen name="+not-found" />
+							</Stack>
+						</BottomSheetModalProvider>
+					</GestureHandlerRootView>
+				</RecoilRoot>
+			</ThemeProvider>
+		</SafeAreaProvider>
 	);
 }

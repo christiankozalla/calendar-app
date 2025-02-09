@@ -1,15 +1,20 @@
 import { Tabs } from "expo-router";
 import { Redirect } from "expo-router";
+import { useSegments } from "expo-router";
 import { useRecoilValue } from "recoil";
 import { TabBarIcon } from "@/components/navigation/TabBarIcon";
 import { AuthState } from "@/store/Authentication";
 
 export default function TabLayout() {
 	const isAuthenticated = useRecoilValue(AuthState);
+	const segments = useSegments();
 
 	if (!isAuthenticated) {
 		return <Redirect href="/login-signup" />;
 	}
+
+	const currentPage = segments.at(-1);
+	const pagesToHide = ["[eventId]"];
 
 	return (
 		<Tabs
@@ -20,6 +25,11 @@ export default function TabLayout() {
 				tabBarStyle: {
 					backgroundColor: "#FFFFFF",
 					borderTopColor: "#E5E7EB", // light gray border
+					display: !currentPage
+						? "flex"
+						: pagesToHide.includes(currentPage)
+							? "none"
+							: "flex", // hides tabBar on (tabs)/calendars/[calendarId]/chat/[eventId]
 				},
 			}}
 		>
@@ -28,16 +38,16 @@ export default function TabLayout() {
 				options={{
 					tabBarLabel: "Calendar",
 					tabBarIcon: ({ color }) => (
-						<TabBarIcon name="calendar" color={color} />
+						<TabBarIcon name="calendar-outline" color={color} />
 					),
 				}}
 			/>
 			<Tabs.Screen
-				name="chat"
+				name="chat/index"
 				options={{
 					tabBarLabel: "Chat",
 					tabBarIcon: ({ color }) => (
-						<TabBarIcon name="chatbubble" color={color} />
+						<TabBarIcon name="chatbubble-outline" color={color} />
 					),
 				}}
 			/>
@@ -45,7 +55,9 @@ export default function TabLayout() {
 				name="activity"
 				options={{
 					tabBarLabel: "Activity",
-					tabBarIcon: ({ color }) => <TabBarIcon name="pulse" color={color} />,
+					tabBarIcon: ({ color }) => (
+						<TabBarIcon name="notifications-outline" color={color} />
+					),
 				}}
 			/>
 			<Tabs.Screen
@@ -53,10 +65,11 @@ export default function TabLayout() {
 				options={{
 					tabBarLabel: "Settings",
 					tabBarIcon: ({ color }) => (
-						<TabBarIcon name="settings" color={color} />
+						<TabBarIcon name="settings-outline" color={color} />
 					),
 				}}
 			/>
+			<Tabs.Screen name="chat/[eventId]" options={{ href: null }} />
 		</Tabs>
 	);
 }

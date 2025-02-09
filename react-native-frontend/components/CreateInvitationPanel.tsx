@@ -1,13 +1,13 @@
 import { Fragment, useCallback, useState } from "react";
 import { View, Text, StyleSheet } from "react-native";
 import { createURL } from "expo-linking";
-import type { CalendarsResponse, UsersResponse } from "@/api/pocketbase-types";
 import { pb } from "@/api/pocketbase";
 import { CopyableText } from "./CopyableText";
 import { Button } from "./Button";
-import { BottomSheetTextInput, BottomSheetView } from "@gorhom/bottom-sheet";
-import { bottomsheetStyles } from "@/utils/bottomsheetStyles";
+import { BottomSheetTextInput } from "@gorhom/bottom-sheet";
 import type { CalendarsStateType } from "@/store/Calendars";
+import { UserState } from "@/store/Authentication";
+import { useRecoilValue } from "recoil";
 
 type Props = {
 	calendar: CalendarsStateType[string];
@@ -15,18 +15,19 @@ type Props = {
 
 // TODO: Re-design this component to allow MULTI user invite
 export const CreateInvitationPanel = ({ calendar }: Props) => {
+	const user = useRecoilValue(UserState);
 	const [invitationLink, setInvitationLink] = useState<string>();
 	const [inviteeEmail, setInviteeEmail] = useState("");
 
 	const inviteNewUser = useCallback(async () => {
 		try {
-			if (!pb.authStore.record?.id) {
+			if (!user) {
 				throw new Error("User not logged in");
 			}
 			const data = {
 				invitee_email: inviteeEmail,
 				calendar: calendar.id,
-				inviter: pb.authStore.record.id,
+				inviter: user.id,
 			};
 
 			const { token } = await pb.collection("invitations").create(data);
@@ -41,11 +42,16 @@ export const CreateInvitationPanel = ({ calendar }: Props) => {
 		}
 	}, [inviteeEmail]);
 
+	if (user?.id !== calendar.owner) {
+		console.log(
+			"CreateInvitationPanel hidden: User is not the owner of the calendar",
+		);
+		return;
+	}
+
 	return (
 		<Fragment>
-			<Text style={styles.title}>
-				Invite people to <Text style={styles.italic}>{calendar.name}</Text>
-			</Text>
+			<Text style={styles.title}>Invite people to {calendar.name}</Text>
 			<View style={styles.form}>
 				<BottomSheetTextInput
 					style={styles.input}
@@ -68,7 +74,9 @@ export const CreateInvitationPanel = ({ calendar }: Props) => {
 					<CopyableText text={invitationLink}>
 						<Text style={styles.linkText}>
 							<Text style={styles.boldText}>Your invitation link: </Text>
-							{invitationLink}
+							<Text numberOfLines={1} ellipsizeMode="tail">
+								{invitationLink}
+							</Text>
 						</Text>
 					</CopyableText>
 				</View>
@@ -110,5 +118,4 @@ const styles = StyleSheet.create({
 	buttonText: {
 		color: "white",
 	},
-	italic: { fontStyle: "italic" },
 });

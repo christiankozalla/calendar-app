@@ -17,7 +17,7 @@ import { pb, PbOperations } from "@/api/pocketbase";
 import type { EventsResponse, PersonsResponse } from "@/api/pocketbase-types";
 import { Link, useGlobalSearchParams } from "expo-router";
 import { useRecoilState, useRecoilValue } from "recoil";
-import { isSameDay } from "date-fns";
+import { isSameDay } from "date-fns/isSameDay";
 import {
 	inRange,
 	roundToNearestHour,
@@ -27,7 +27,11 @@ import { EventListPanel } from "@/components/EventListPanel";
 import { EventCreateUpdatePanel } from "@/components/EventCreateUpdatePanel";
 import { Header } from "@/components/Header";
 import { ColorsState } from "@/store/Colors";
-import { type DateData, CalendarList } from "react-native-calendars";
+import {
+	type DateData,
+	type RenderPeriod,
+	CalendarList,
+} from "react-native-calendars";
 import { eventsToMarkedDates } from "@/utils/calendar";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { globalstyles } from "@/utils/globalstyles";
@@ -35,6 +39,7 @@ import { StatusBar } from "expo-status-bar";
 import { CalendarsState } from "@/store/Calendars";
 import { Avatar } from "@/components/Avatar";
 import { bottomsheetStyles } from "@/utils/bottomsheetStyles";
+import { getTextColorBasedOnBg } from "@/utils/color";
 
 const findEventsForDay = (events: EventWithPersons[], day: Date | string) => {
 	day = typeof day === "string" ? new Date(day) : day;
@@ -167,7 +172,7 @@ export default function CalendarScreen() {
 			setBottomSheetContent(<EventCreateUpdatePanel {...props} />);
 			bottomSheetRef.current?.present();
 		},
-		[calendarId],
+		[calendarId, calendarFromBackend],
 	);
 
 	const showEventList = (
@@ -246,13 +251,16 @@ export default function CalendarScreen() {
 					<Link href="/" push>
 						<Avatar size="small" uri={avatarUri} />
 					</Link>
-					<Text style={styles.headerText}>{calendarFromBackend?.name}</Text>
+					{calendarFromBackend?.name && (
+						<Text style={styles.headerText}>{calendarFromBackend?.name}</Text>
+					)}
 				</Header>
 
 				<CalendarList
 					firstDay={1}
 					markingType="multi-period"
 					markedDates={markedDatesWithSelected}
+					renderPeriod={renderPeriod}
 					onDayPress={onDayPress}
 					onDayLongPress={(day: DateData) => {
 						openCreateNewEvent(day.dateString);
@@ -270,6 +278,47 @@ export default function CalendarScreen() {
 		</SafeAreaView>
 	);
 }
+
+const customPeriodStyles = StyleSheet.create({
+	markingViewWithTextProps: {
+		position: "relative",
+		overflow: "visible",
+		height: 11,
+	},
+	markingTextProps: {
+		position: "absolute",
+		left: 4,
+		bottom: 0,
+		right: "auto",
+		width: 120,
+		height: 12,
+		fontWeight: "bold",
+		fontSize: 10,
+		includeFontPadding: false,
+		textAlignVertical: "center",
+	},
+});
+
+const renderPeriod: RenderPeriod = (period, styles) => {
+	if (period.text) {
+		styles.push(customPeriodStyles.markingViewWithTextProps);
+		if (period.startingDay) {
+			return (
+				<Text
+					numberOfLines={1}
+					ellipsizeMode="tail"
+					style={[
+						customPeriodStyles.markingTextProps,
+						{ color: getTextColorBasedOnBg(period.color) },
+					]}
+				>
+					{period.text}
+				</Text>
+			);
+		}
+	}
+	return null;
+};
 
 const styles = StyleSheet.create({
 	container: {

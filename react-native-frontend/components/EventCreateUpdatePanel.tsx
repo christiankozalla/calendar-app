@@ -97,7 +97,7 @@ export const EventCreateUpdatePanel = ({
 		try {
 			const owner = pb.authStore.record?.id;
 			const eventData = {
-				calendarId,
+				calendar: calendarId,
 				owner,
 				title: eventTitle,
 				description: eventDescription,

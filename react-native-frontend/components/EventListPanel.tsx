@@ -122,6 +122,7 @@ export const EventListPanel = ({
 				</TouchableOpacity>
 				<Button
 					label="New Event"
+					size="small"
 					onPress={() => {
 						setBottomSheetContent?.(
 							<EventCreateUpdatePanel
@@ -181,6 +182,7 @@ const styles = StyleSheet.create({
 	text: {
 		fontSize: 14,
 		color: "#666",
+		marginRight: 24,
 	},
 	description: {
 		marginTop: 8,

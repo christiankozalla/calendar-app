@@ -7,15 +7,15 @@ import {
 	RefreshControl,
 	SafeAreaView,
 } from "react-native";
-import { Link, useLocalSearchParams } from "expo-router";
+import { Link, useGlobalSearchParams } from "expo-router";
 import { pb } from "@/api/pocketbase";
 import {
 	Collections,
 	type EventsByMessageResponse,
-	type MessagesResponse,
 } from "@/api/pocketbase-types";
 import { globalstyles } from "@/utils/globalstyles";
 import { StatusBar } from "expo-status-bar";
+import { Header } from "@/components/Header";
 
 /**
  * 1. Fetch events that have recent/newest messages
@@ -39,7 +39,7 @@ const formatDate = (isoString: string): string => {
 };
 
 export default function ChatScreen() {
-	const { calendarId } = useLocalSearchParams<{ calendarId: string }>();
+	const { calendarId } = useGlobalSearchParams<{ calendarId: string }>();
 	const [events, setEvents] = useState<EventsByMessageResponse<string>[]>([]);
 	const [refreshing, setRefreshing] = useState(false);
 
@@ -60,29 +60,6 @@ export default function ChatScreen() {
 		loadEvents();
 	}, [calendarId]);
 
-	useEffect(() => {
-		const unsubscribePromise = pb
-			.collection(Collections.Messages)
-			.subscribe<MessagesResponse<never>>(
-				"*",
-				(collection) => {
-					console.log(
-						"messages for this calendar have changed",
-						collection.action,
-						collection.record,
-					);
-					console.log("updating event list");
-					onRefresh();
-				},
-				{
-					filter: pb.filter("event.calendar = {:calendarId}", { calendarId }),
-				},
-			);
-
-		return () => {
-			unsubscribePromise.then((unsubscribe) => unsubscribe?.());
-		};
-	}, [calendarId]);
 
 	const onRefresh = async () => {
 		setRefreshing(true);
@@ -95,9 +72,9 @@ export default function ChatScreen() {
 			<StatusBar style="dark" />
 
 			<View style={styles.container}>
-				<View style={styles.header}>
-					<Text style={styles.headerTitle}>Chat</Text>
-				</View>
+				<Header style={styles.header}>
+					<Text style={styles.headerText}>Chat</Text>
+				</Header>
 
 				<FlatList
 					data={events}
@@ -107,109 +84,38 @@ export default function ChatScreen() {
 						<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
 					}
 					renderItem={({ item: event }) => (
-						<Link
-							style={styles.eventCard}
-							href={`/(tabs)/calendars/${calendarId}/chat/${event.id}`}
-						>
-							<Text style={styles.eventTitle}>
+						<View style={styles.eventCard}>
+							<Link
+								style={styles.eventTitle}
+								href={`/(tabs)/calendars/${calendarId}/chat/${event.id}`}
+							>
 								{event.title || "Untitled Event"}
-							</Text>
-							{event.most_recent_message_time ? (
-								<Fragment>
-									<Text>{formatDate(event.most_recent_message_time)}</Text>
-									<Text>{event.most_recent_message_text}</Text>
-								</Fragment>
-							) : (
-								<Text>No messages yet</Text>
+							</Link>
+							{event.most_recent_message_time && (
+								<View>
+									<Link
+										style={styles.messageTime}
+										href={`/(tabs)/calendars/${calendarId}/chat/${event.id}`}
+									>
+										{formatDate(event.most_recent_message_time)}
+									</Link>
+									<Link
+										style={styles.messagePreview}
+										numberOfLines={3}
+										ellipsizeMode="tail"
+										href={`/(tabs)/calendars/${calendarId}/chat/${event.id}`}
+									>
+										{event.most_recent_message_text}
+									</Link>
+								</View>
 							)}
-						</Link>
+						</View>
 					)}
 				/>
 			</View>
 		</SafeAreaView>
 	);
 }
-
-// function ChatView({
-// 	messages,
-// 	eventId,
-// 	eventTitle,
-// }: {
-// 	messages: MessagesResponse<{ author: UsersRecord }>[];
-// 	eventId: string;
-// 	eventTitle?: string;
-// }) {
-// 	const [messageText, setMessageText] = useState("");
-// 	const flatListRef = useRef<FlatList>(null);
-
-// 	const sendMessage = async () => {
-// 		if (!messageText.trim()) return;
-
-// 		await pb.collection("messages").create({
-// 			text: messageText.trim(),
-// 			author: pb.authStore.model?.id,
-// 			event: eventId,
-// 		});
-
-// 		setMessageText("");
-// 	};
-
-// 	useEffect(() => {
-// 		flatListRef.current?.scrollToEnd({ animated: true });
-// 	}, [messages]);
-
-// 	return (
-// 		<KeyboardAvoidingView
-// 			behavior={Platform.OS === "ios" ? "padding" : "height"}
-// 			style={styles.flex}
-// 		>
-// 			<View style={styles.chatContainer}>
-// 				<Text style={styles.chatTitle}>{eventTitle || "Untitled Event"}</Text>
-
-// 				<FlatList
-// 					ref={flatListRef}
-// 					data={messages}
-// 					style={styles.flex}
-// 					contentContainerStyle={styles.messageList}
-// 					ItemSeparatorComponent={() => (
-// 						<View style={styles.messageSeparator} />
-// 					)}
-// 					renderItem={({ item: message }) => (
-// 						<View style={styles.messageContainer}>
-// 							<Text style={styles.authorName}>
-// 								{message.expand?.author?.name || "Unknown User"}
-// 							</Text>
-// 							<Text style={styles.messageText}>{message.text}</Text>
-// 							<Text style={styles.messageTime}>
-// 								{formatDate(message.created)}
-// 							</Text>
-// 						</View>
-// 					)}
-// 				/>
-
-// 				<View style={styles.inputContainer}>
-// 					<TextInput
-// 						style={styles.input}
-// 						value={messageText}
-// 						onChangeText={setMessageText}
-// 						placeholder="Type your message..."
-// 						multiline
-// 					/>
-// 					<TouchableOpacity
-// 						style={[
-// 							styles.sendButton,
-// 							!messageText.trim() && styles.sendButtonDisabled,
-// 						]}
-// 						disabled={!messageText.trim()}
-// 						onPress={sendMessage}
-// 					>
-// 						<Text style={styles.sendButtonText}>Send</Text>
-// 					</TouchableOpacity>
-// 				</View>
-// 			</View>
-// 		</KeyboardAvoidingView>
-// 	);
-// }
 
 const styles = StyleSheet.create({
 	container: {
@@ -220,13 +126,15 @@ const styles = StyleSheet.create({
 		flex: 1,
 	},
 	header: {
-		padding: 16,
-		borderBottomWidth: 1,
-		borderBottomColor: "#eee",
+		flex: 1,
+		flexDirection: "row",
+		alignItems: "center",
+		flexGrow: 0,
 	},
-	headerTitle: {
-		fontSize: 24,
-		fontWeight: "600",
+	headerText: {
+		fontSize: 18,
+		fontWeight: "bold",
+		marginTop: 2,
 	},
 	eventList: {
 		padding: 16,
@@ -238,6 +146,7 @@ const styles = StyleSheet.create({
 		height: 8,
 	},
 	eventCard: {
+		flexDirection: "column",
 		padding: 16,
 		backgroundColor: "white",
 		borderRadius: 8,
@@ -249,10 +158,22 @@ const styles = StyleSheet.create({
 		shadowOpacity: 0.1,
 		shadowRadius: 3,
 		elevation: 3,
+		gap: 6,
 	},
 	eventTitle: {
 		fontSize: 16,
 		fontWeight: "500",
+		marginBottom: 4,
+	},
+	messageTime: {
+		fontSize: 12,
+		color: "#666",
+		marginBottom: 2,
+	},
+	messagePreview: {
+		fontSize: 14,
+		color: "#333",
+		lineHeight: 20,
 	},
 	chatContainer: {
 		flex: 1,
@@ -278,12 +199,6 @@ const styles = StyleSheet.create({
 	messageText: {
 		fontSize: 14,
 		marginTop: 4,
-	},
-	messageTime: {
-		fontSize: 12,
-		color: "#666",
-		marginTop: 4,
-		textAlign: "right",
 	},
 	inputContainer: {
 		flexDirection: "row",

@@ -22,17 +22,17 @@ export const CopyableText = ({ text, children }: Props) => {
 
 	return (
 		<View style={styles.container}>
-			<View style={styles.contentContainer}>
-				{children || (
-					<Text numberOfLines={1} ellipsizeMode="tail" style={styles.text}>
-						{text}
-					</Text>
-				)}
+			{children || (
+				<Text numberOfLines={1} ellipsizeMode="tail" style={styles.text}>
+					{text}
+				</Text>
+			)}
+			<View style={styles.buttonContainer}>
 				{copied && <Text style={styles.copiedText}>Copied!</Text>}
+				<TouchableOpacity style={styles.button} onPress={handleCopy}>
+					<Text style={styles.buttonText}>{copied ? "✓" : "Copy"}</Text>
+				</TouchableOpacity>
 			</View>
-			<TouchableOpacity style={styles.button} onPress={handleCopy}>
-				<Text style={styles.buttonText}>{copied ? "✓" : "Copy"}</Text>
-			</TouchableOpacity>
 		</View>
 	);
 };
@@ -48,10 +48,10 @@ const styles = StyleSheet.create({
 		borderRadius: 8,
 		backgroundColor: "#f5f5f5",
 	},
-	contentContainer: {
-		flex: 1,
-		flexDirection: "row",
+	buttonContainer: {
+		gap: 8,
 		alignItems: "center",
+		justifyContent: "center",
 	},
 	text: {
 		flex: 1,

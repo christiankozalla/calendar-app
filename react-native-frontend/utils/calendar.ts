@@ -4,10 +4,12 @@ import type {
 	UsersResponse,
 } from "@/api/pocketbase-types";
 import type { Colors } from "@/store/Colors";
+import { isSameDay } from "date-fns/isSameDay";
+import type { MarkingProps } from "react-native-calendars/src/calendar/day/marking";
 
 type MarkedDates = {
 	[date: string]: {
-		periods: { startingDay?: boolean; endingDay?: boolean; color: string }[];
+		periods: NonNullable<MarkingProps["periods"]>;
 	};
 };
 
@@ -64,8 +66,9 @@ export function eventsToMarkedDates(
 				eventIndex =
 					markedDates[dateStr].periods.push({
 						startingDay: currentDate.getTime() === startDate.getTime(),
-						endingDay: currentDate.getTime() === endDate.getTime(),
+						endingDay: isSameDay(currentDate, endDate),
 						color: colors[color]?.hex || "#6A0572",
+						text: event.title,
 					}) - 1;
 			} else {
 				// Ensure that the event uses the same index for the remaining dates
@@ -75,8 +78,9 @@ export function eventsToMarkedDates(
 
 				markedDates[dateStr].periods[eventIndex] = {
 					startingDay: currentDate.getTime() === startDate.getTime(),
-					endingDay: currentDate.getTime() === endDate.getTime(),
+					endingDay: isSameDay(currentDate, endDate),
 					color: colors[color]?.hex || "#6A0572",
+					text: event.title,
 				};
 			}
 		}

@@ -2,10 +2,10 @@ import type { CalendarsStateType } from "@/store/Calendars";
 import type {
 	TypedPocketBase,
 	CalendarsResponse,
-	UsersResponse,
 	PersonsResponse,
 	CalendarsRecord,
 	MessagesRecord,
+	PersonsRecord,
 } from "./pocketbase-types";
 import { Collections } from "./pocketbase-types";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -213,6 +213,77 @@ class Operations {
 				[calendarId]: result,
 			}));
 		}
+	}
+
+	public async createPerson(
+		person: Partial<PersonsRecord>,
+		calendarsStateSetter?: SetterOrUpdater<CalendarsStateType>,
+	) {
+		const result = await this.catchError(() =>
+			pb.collection(Collections.Persons).create(person),
+		);
+
+		if ("error" in result) {
+			return result;
+		}
+
+		if (calendarsStateSetter) {
+			calendarsStateSetter((prev) => {
+				const newCalendars = { ...prev };
+				for (const calendarId in newCalendars) {
+					if (newCalendars[calendarId].expand?.persons) {
+						newCalendars[calendarId] = {
+							...newCalendars[calendarId],
+							expand: {
+								...newCalendars[calendarId].expand,
+								persons: [...newCalendars[calendarId].expand.persons, result],
+							},
+						};
+					}
+				}
+				return newCalendars;
+			});
+		}
+
+		return result;
+	}
+
+	public async updatePerson(
+		person: PersonsRecord,
+		calendarsStateSetter?: SetterOrUpdater<CalendarsStateType>,
+	) {
+		const result = await this.catchError(() =>
+			pb.collection(Collections.Persons).update(person.id, person),
+		);
+
+		if ("error" in result) {
+			return result;
+		}
+
+		if (calendarsStateSetter) {
+			calendarsStateSetter((prev) => {
+				const newCalendars = { ...prev };
+				for (const calendarId in newCalendars) {
+					if (newCalendars[calendarId].expand?.persons) {
+						newCalendars[calendarId] = {
+							...newCalendars[calendarId],
+							expand: {
+								...newCalendars[calendarId].expand,
+								persons: [
+									...newCalendars[calendarId].expand.persons.filter(
+										(p) => p.id !== result.id,
+									),
+									result,
+								],
+							},
+						};
+					}
+				}
+				return newCalendars;
+			});
+		}
+
+		return result;
 	}
 
 	public async createMessageForEvent(

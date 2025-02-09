@@ -6,7 +6,7 @@ import {
 	TouchableOpacity,
 	StyleSheet,
 } from "react-native";
-import { pb } from "@/api/pocketbase";
+import { pb, PbOperations } from "@/api/pocketbase";
 import { typography } from "@/utils/typography";
 import { Avatar } from "./Avatar";
 import { TabBarIcon } from "./navigation/TabBarIcon";
@@ -15,7 +15,11 @@ import {
 	BottomSheetView,
 	BottomSheetTextInput,
 } from "@gorhom/bottom-sheet";
-import type { PersonsResponse, UsersResponse } from "@/api/pocketbase-types";
+import type {
+	PersonsRecord,
+	PersonsResponse,
+	UsersResponse,
+} from "@/api/pocketbase-types";
 import {
 	type SetterOrUpdater,
 	useRecoilState,
@@ -31,6 +35,7 @@ import type { ImagePickerAsset } from "expo-image-picker";
 import { bottomsheetStyles } from "@/utils/bottomsheetStyles";
 import { FullWidthGreyBorderButton } from "./FullWidthGreyBorderButton";
 import { CalendarsState } from "@/store/Calendars";
+import type { ClientResponseError } from "pocketbase";
 
 export const ProfileInfoPanel = () => {
 	// updating the user record with update pb.authStore.record AND UserState atom
@@ -103,10 +108,10 @@ const ProfileEditor = ({
 		: null;
 
 	const saveAvatarAndName = useCallback(async () => {
-		const data = new FormData();
+		const data: Partial<PersonsRecord> = {};
 
 		if (name?.trim() && name.trim() !== profile?.name) {
-			data.set("name", name.trim());
+			data.name = name.trim();
 		}
 
 		if (avatar && avatar.type === "image") {
@@ -115,57 +120,40 @@ const ProfileEditor = ({
 				`${profile?.id ?? pb.authStore.record?.id ?? ""}-${generateUUID()}.${getImageFileExtension(avatar.mimeType)}`;
 
 			// @ts-ignore
-			data.set("avatar", {
+			data.avatar = {
 				uri: avatar.uri,
 				type: avatar.mimeType || "image/*",
 				name: fileName,
-			});
+			};
 		}
 
 		// return early if no data has been set
-		if (!(data.has("name") || data.has("avatar"))) return;
+		if (!("name" in data || "avatar" in data)) return;
 
-		try {
-			setUpdating(true);
-			let userPersonRecord: PersonsResponse;
-			if (profile) {
-				userPersonRecord = await pb
-					.collection("persons")
-					.update(profile.id, data);
-
-				// update global Recoil state (not sure if this is "worth it" saving a few backend requests)
-				// update every person object in every calendar of this user
-				setGlobalCalendars((prev) => {
-					console.log("new calendars", prev.expand?.persons);
-					const newCalendars = { ...prev };
-					for (const calendarId in newCalendars) {
-						if (newCalendars[calendarId].expand?.persons) {
-							newCalendars[calendarId] = {
-								...newCalendars[calendarId],
-								expand: {
-									...newCalendars[calendarId].expand,
-									persons: [
-										...newCalendars[calendarId].expand.persons.filter(
-											(p) => p.id !== userPersonRecord.id,
-										),
-										userPersonRecord,
-									],
-								},
-							};
-						}
-					}
-					return newCalendars;
-				});
-			} else {
-				userPersonRecord = await pb.collection("persons").create(data);
-			}
-			setUserPerson(userPersonRecord);
-			setEditProfile(false);
-		} catch (err) {
-			console.error("Error uploading to PocketBase:", err);
-		} finally {
-			setUpdating(false);
+		setUpdating(true);
+		let userPersonRecord:
+			| PersonsResponse
+			| { error: Error | ClientResponseError };
+		if (profile) {
+			userPersonRecord = await PbOperations.updatePerson(
+				{ id: profile.id, ...data },
+				setGlobalCalendars,
+			);
+		} else {
+			userPersonRecord = await PbOperations.createPerson(
+				data,
+				setGlobalCalendars,
+			);
 		}
+
+		if ("error" in userPersonRecord) {
+			console.error("Error updating userPersonRecord:", userPersonRecord.error);
+			return;
+		}
+
+		setUserPerson(userPersonRecord);
+		setEditProfile(false);
+		setUpdating(false);
 	}, [name, avatar]);
 
 	const Buttons = () => {

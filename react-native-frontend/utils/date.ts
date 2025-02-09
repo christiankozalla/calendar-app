@@ -1,4 +1,6 @@
-import { isSameDay, isAfter, isBefore } from "date-fns";
+import { isSameDay } from "date-fns/isSameDay";
+import { isBefore } from "date-fns/isBefore";
+import { isAfter } from "date-fns/isAfter";
 
 export const inRange = (date: Date, min: Date, max: Date) =>
 	(isSameDay(date, min) || isAfter(date, min)) &&

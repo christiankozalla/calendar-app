@@ -212,7 +212,7 @@ export const ConfigureCalendarPanel = ({
 										? "(you)"
 										: "(user)"}
 							</Text>
-							{/* if dont display the delete button if it is the owners person - but maybe we want to allow the owner of a calendar to decide not to "participate" in a calendar, i.e. not have its userPerson in the calendar...! */}
+							{/* dont display the delete button if it is the owners person - but maybe we want to allow the owner of a calendar to decide not to "participate" in a calendar, i.e. not have its userPerson in the calendar...! */}
 							{p.user !== calendars[calendarId].owner && (
 								<TouchableOpacity
 									style={styles.deleteButton}

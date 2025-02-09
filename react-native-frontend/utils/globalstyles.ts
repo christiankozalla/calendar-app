@@ -5,6 +5,6 @@ export const globalstyles = StyleSheet.create({
 	safeArea: {
 		flex: 1,
 		backgroundColor: "white",
-		paddingTop: Platform.OS === "android" ? 25 : 0,
+		paddingTop: Platform.OS === "android" ? 30 : 0,
 	},
 });

@@ -71,11 +71,10 @@ func OnAfterUsersCreateHandleInvitation(app *pocketbase.PocketBase) func(*core.R
 		inviteeEmail, ok := claims["inviteeEmail"].(string)
 		if !ok {
 			return fmt.Errorf("inviteeEmail claim does not exist")
+		} else if inviteeEmail != e.Record.Email() {
+			return fmt.Errorf("email address of signing up user and intended invitee do not match")
 		}
 
-		if ok && inviteeEmail != e.Record.Email() {
-			return fmt.Errorf("email address of signing up user and intended invitee does not matchxx")
-		}
 		inviterId, ok := claims["inviterId"].(string)
 		if !ok {
 			return fmt.Errorf("inviterId claim does not exist")

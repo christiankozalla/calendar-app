@@ -18,5 +18,12 @@
 	{ "name": "Golden Yellow", "hex": "#F1C40F" },
 	{ "name": "Bold Red", "hex": "#E74C3C" },
 	{ "name": "Sky Blue", "hex": "#2980B9" },
-	{ "name": "Vibrant Purple", "hex": "#8E44AD" }
+	{ "name": "Vibrant Purple", "hex": "#8E44AD" },
+
+	{"name": "Apple", "hex": "#61BB46", "rgb": "97,187,70" },
+	{"name": "Ripe Mango", "hex": "#FDB827", "rgb": "253,184,39" },
+	{"name": "Princeton Orange", "hex": "#F5821F", "rgb": "245,130,31" },
+	{"name": "Jasper", "hex": "#E03A3E", "rgb": "224,58,62" },
+	{"name": "Plum", "hex": "#963D97", "rgb": "150,61,151" },
+	{"name": "Rich Electric Blue", "hex": "#009DDC", "rgb": "0,157,220" }
 ]

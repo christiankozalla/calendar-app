@@ -109,7 +109,7 @@ const CalendarList = ({
 										<TabBarIcon name="settings-outline" size={18} />
 									</TouchableOpacity>
 								</View>
-								<Link href={`/calendars/${c.id}`}>
+								<Link href={`/calendars/${c.id}`} style={styles.link}>
 									<TabBarIcon name="arrow-forward" size={18} />
 								</Link>
 							</View>
@@ -272,4 +272,8 @@ const styles = StyleSheet.create({
 	sectionHeader: {
 		marginBottom: 12,
 	},
+	link: {
+		paddingHorizontal: 12,
+		height: "100%"
+	}
 });

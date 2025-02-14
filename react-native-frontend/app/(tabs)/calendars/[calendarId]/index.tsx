@@ -231,8 +231,8 @@ export default function CalendarScreen() {
 		return (
 			<SafeAreaView style={globalstyles.safeArea}>
 				<StatusBar style="dark" />
-				<View style={styles.container}>
-					<Header style={styles.header}>
+				<View style={globalstyles.container}>
+					<Header style={globalstyles.header}>
 						<Link href="/" push>
 							<Avatar size="small" uri={avatarUri} />
 						</Link>
@@ -246,13 +246,13 @@ export default function CalendarScreen() {
 	return (
 		<SafeAreaView style={globalstyles.safeArea}>
 			<StatusBar style="dark" />
-			<View style={styles.container}>
-				<Header style={styles.header}>
+			<View style={globalstyles.container}>
+				<Header style={globalstyles.header}>
 					<Link href="/" push>
 						<Avatar size="small" uri={avatarUri} />
 					</Link>
 					{calendarFromBackend?.name && (
-						<Text style={styles.headerText}>{calendarFromBackend?.name}</Text>
+						<Text style={globalstyles.headerText}>{calendarFromBackend?.name}</Text>
 					)}
 				</Header>
 
@@ -296,6 +296,7 @@ const customPeriodStyles = StyleSheet.create({
 		fontSize: 10,
 		includeFontPadding: false,
 		textAlignVertical: "center",
+		zIndex: 1, // elevation has no effect here, zIndex is working on Android and iOS in this particular case
 	},
 });
 
@@ -321,26 +322,11 @@ const renderPeriod: RenderPeriod = (period, styles) => {
 };
 
 const styles = StyleSheet.create({
-	container: {
-		flex: 1,
-		backgroundColor: "white",
-	},
 	loadingContainer: {
 		flex: 1,
 		justifyContent: "center",
 		backgroundColor: "white",
 		alignItems: "center",
-	},
-	header: {
-		flex: 1,
-		flexDirection: "row",
-		alignItems: "center",
-		flexGrow: 0,
-	},
-	headerText: {
-		fontSize: 18,
-		fontWeight: "bold",
-		marginTop: 2,
 	},
 	addButton: {
 		width: 32,

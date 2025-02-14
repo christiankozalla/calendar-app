@@ -1,4 +1,4 @@
-import { Image } from "react-native";
+import { Image, type TextStyle, type ImageStyle, type StyleProp } from "react-native";
 import { TabBarIcon } from "./navigation/TabBarIcon";
 import { Fragment } from "react";
 
@@ -32,18 +32,20 @@ const sizes = {
 export const Avatar = ({
 	uri,
 	size,
-}: { uri?: string | null; size: keyof typeof sizes }) => {
+	style
+}: { uri?: string | null; size: keyof typeof sizes, style: StyleProp<ImageStyle> & StyleProp<TextStyle> }) => {
 	return (
 		<Fragment>
 			{uri ? (
 				<Image
+					style={style}
 					source={{ uri }}
 					width={sizes[size].image.length}
 					height={sizes[size].image.length}
 					borderRadius={sizes[size].image.length / 2}
 				/>
 			) : (
-				<TabBarIcon name="person-circle" style={sizes[size].icon} />
+				<TabBarIcon name="person-circle" style={[sizes[size].icon, style]} />
 			)}
 		</Fragment>
 	);

@@ -2,7 +2,7 @@ import { View, StyleSheet, type ViewStyle } from "react-native";
 
 type HeaderProps = {
 	children: React.ReactNode;
-	style?: ViewStyle;
+	style?: ViewStyle | ViewStyle[];
 };
 
 export const Header = ({ children, style }: HeaderProps) => {

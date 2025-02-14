@@ -12,7 +12,6 @@ export enum Collections {
 	Otps = "_otps",
 	Superusers = "_superusers",
 	Calendars = "calendars",
-	Chat = "chat",
 	Colors = "colors",
 	Events = "events",
 	EventsByMessage = "events_by_message",
@@ -104,19 +103,6 @@ export type CalendarsRecord = {
 	users?: RecordIdString[];
 };
 
-export type ChatRecord = {
-	author?: RecordIdString;
-	calendar: RecordIdString;
-	calendar_users?: RecordIdString[];
-	event_created?: IsoDateString;
-	event_id?: RecordIdString;
-	event_title?: string;
-	id: string;
-	message_created?: IsoDateString;
-	message_id?: RecordIdString;
-	message_text?: string;
-};
-
 export type ColorsRecord = {
 	created?: IsoDateString;
 	hex?: string;
@@ -142,6 +128,7 @@ export type EventsRecord = {
 
 export type EventsByMessageRecord<Tmost_recent_message_time = unknown> = {
 	calendar: RecordIdString;
+	calendar_owner?: RecordIdString;
 	calendar_users?: RecordIdString[];
 	created?: IsoDateString;
 	id: string;
@@ -212,8 +199,6 @@ export type SuperusersResponse<Texpand = unknown> = Required<SuperusersRecord> &
 	AuthSystemFields<Texpand>;
 export type CalendarsResponse<Texpand = unknown> = Required<CalendarsRecord> &
 	BaseSystemFields<Texpand>;
-export type ChatResponse<Texpand = unknown> = Required<ChatRecord> &
-	BaseSystemFields<Texpand>;
 export type ColorsResponse<Texpand = unknown> = Required<ColorsRecord> &
 	BaseSystemFields<Texpand>;
 export type EventsResponse<Texpand = unknown> = Required<EventsRecord> &
@@ -243,7 +228,6 @@ export type CollectionRecords = {
 	_otps: OtpsRecord;
 	_superusers: SuperusersRecord;
 	calendars: CalendarsRecord;
-	chat: ChatRecord;
 	colors: ColorsRecord;
 	events: EventsRecord;
 	events_by_message: EventsByMessageRecord;
@@ -261,7 +245,6 @@ export type CollectionResponses = {
 	_otps: OtpsResponse;
 	_superusers: SuperusersResponse;
 	calendars: CalendarsResponse;
-	chat: ChatResponse;
 	colors: ColorsResponse;
 	events: EventsResponse;
 	events_by_message: EventsByMessageResponse;
@@ -282,7 +265,6 @@ export type TypedPocketBase = PocketBase & {
 	collection(idOrName: "_otps"): RecordService<OtpsResponse>;
 	collection(idOrName: "_superusers"): RecordService<SuperusersResponse>;
 	collection(idOrName: "calendars"): RecordService<CalendarsResponse>;
-	collection(idOrName: "chat"): RecordService<ChatResponse>;
 	collection(idOrName: "colors"): RecordService<ColorsResponse>;
 	collection(idOrName: "events"): RecordService<EventsResponse>;
 	collection(

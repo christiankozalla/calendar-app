@@ -38,7 +38,7 @@ const formatDate = (isoString: string): string => {
 	});
 };
 
-export default function ChatScreen() {
+export default function CommentsScreen() {
 	const { calendarId } = useGlobalSearchParams<{ calendarId: string }>();
 	const [events, setEvents] = useState<EventsByMessageResponse<string>[]>([]);
 	const [refreshing, setRefreshing] = useState(false);
@@ -59,7 +59,6 @@ export default function ChatScreen() {
 	useEffect(() => {
 		loadEvents();
 	}, [calendarId]);
-
 
 	const onRefresh = async () => {
 		setRefreshing(true);
@@ -84,32 +83,28 @@ export default function ChatScreen() {
 						<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
 					}
 					renderItem={({ item: event }) => (
-						<View style={styles.eventCard}>
-							<Link
-								style={styles.eventTitle}
-								href={`/(tabs)/calendars/${calendarId}/chat/${event.id}`}
-							>
+						<Link
+							href={`/(tabs)/calendars/${calendarId}/chat/${event.id}`}
+							style={styles.eventCard}
+						>
+							<Text style={styles.eventTitle}>
 								{event.title || "Untitled Event"}
-							</Link>
+							</Text>
 							{event.most_recent_message_time && (
 								<View>
-									<Link
-										style={styles.messageTime}
-										href={`/(tabs)/calendars/${calendarId}/chat/${event.id}`}
-									>
+									<Text style={styles.messageTime}>
 										{formatDate(event.most_recent_message_time)}
-									</Link>
-									<Link
+									</Text>
+									<Text
 										style={styles.messagePreview}
 										numberOfLines={3}
 										ellipsizeMode="tail"
-										href={`/(tabs)/calendars/${calendarId}/chat/${event.id}`}
 									>
 										{event.most_recent_message_text}
-									</Link>
+									</Text>
 								</View>
 							)}
-						</View>
+						</Link>
 					)}
 				/>
 			</View>

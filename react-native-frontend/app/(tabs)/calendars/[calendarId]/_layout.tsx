@@ -29,7 +29,7 @@ export default function TabLayout() {
 						? "flex"
 						: pagesToHide.includes(currentPage)
 							? "none"
-							: "flex", // hides tabBar on (tabs)/calendars/[calendarId]/chat/[eventId]
+							: "flex", // hides tabBar on (tabs)/calendars/[calendarId]/comments/[eventId]
 				},
 			}}
 		>
@@ -43,9 +43,9 @@ export default function TabLayout() {
 				}}
 			/>
 			<Tabs.Screen
-				name="chat/index"
+				name="comments/index"
 				options={{
-					tabBarLabel: "Chat",
+					tabBarLabel: "Comments",
 					tabBarIcon: ({ color }) => (
 						<TabBarIcon name="chatbubble-outline" color={color} />
 					),
@@ -69,7 +69,7 @@ export default function TabLayout() {
 					),
 				}}
 			/>
-			<Tabs.Screen name="chat/[eventId]" options={{ href: null }} />
+			<Tabs.Screen name="comments/[eventId]" options={{ href: null }} />
 		</Tabs>
 	);
 }

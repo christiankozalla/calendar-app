@@ -1,7 +1,6 @@
 package migrations
 
 import (
-	"fmt"
 	"encoding/json"
 
 	"github.com/pocketbase/pocketbase/core"
@@ -58,8 +57,6 @@ func init() {
 
 		for _, color := range colors {
 			record, err := app.FindFirstRecordByData("colors", "hex", color.Hex)
-			fmt.Println("Record", record)
-			fmt.Println("Error", err)
 			if err != nil || record == nil {
 				// color does not exist yet
 				newRecord := core.NewRecord(colorsCollection)

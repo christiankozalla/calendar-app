@@ -24,7 +24,7 @@ const store = new AsyncAuthStore({
 });
 
 export const pb = new PocketBase(
-	"http://192.168.178.21:8090",
+	"http://192.168.178.44:8090", // use the IP where Metro's dev server is listening
 	store,
 ) as TypedPocketBase;
 

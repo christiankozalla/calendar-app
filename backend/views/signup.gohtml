@@ -1,0 +1,88 @@
+{{define "title"}}
+Suntimes App - Signup
+{{end}}
+
+{{define "style"}}
+<style>
+    form {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+</style>
+{{end}}
+
+{{define "body"}}
+<h1>Suntimes App</h1>
+<h2>Signup with invite token</h2>
+<p>This page mainly exists to signup users that have been invited by others users. The invited users likely do not have
+    the app installed, and passing an invite token from a URL to an app after its installation is cumbersome.<br>So the
+    invite token can be exchanged here for an account, before installing the app.</p>
+
+<p>Hello {{.inviteeEmail}}!</p>
+<p>You have been invited by {{.inviteeEmail}} to share a calendar with them!</p>
+<p>Signup here to Suntimes Calendar and download the app for iOS or Android afterwards.</p>
+
+<form id="signup-form">
+    <input type="text" id="email" name="email" placeholder="Email" required>
+    <input type="text" id="name" name="name" placeholder="Name (optional)">
+    <input type="password" id="password" name="password" placeholder="Password" required>
+    <input type="password" id="passwordConfirm" name="passwordConfirm" placeholder="Confirm password" required>
+    <button type="submit">Sign Up</button>
+    <p id="form-error"></p>
+</form>
+
+<!-- Maybe this is overfill because the HTTP request can be performed be without the PocketBase client SDK -->
+<script type="module" src="/js/pocketbase.umd.js"></script>
+<script type="module">
+    const MIN_PASSWORD_CHARS = 8
+    const form = document.getElementById("signup-form");
+    form.addEventListener("submit", onSubmit);
+    const passwordInput = document.getElementById("password");
+    const passwordConfirmInput = document.getElementById("passwordConfirm");
+
+    passwordInput.addEventListener("input", resetFormErrorElement);
+    passwordConfirmInput.addEventListener("input", resetFormErrorElement);
+
+    const pb = new PocketBase("/");
+
+    async function signupUser(
+        formData,
+        options,
+    ) {
+        const user = await pb.collection("users").create(formData, options);
+        await pb.collection("persons").create({ name: formData.get("name"), user: user.id });
+    };
+
+    async function onSubmit(event) {
+        event.preventDefault();
+        const formData = new FormData(event.target);
+
+        const password = formData.get("password");
+        const passwordConfirm = formData.get("passwordConfirm");
+        if (password && passwordConfirm && password !== passwordConfirm) {
+            document.getElementById("form-error").innerText = "Passwords do not match!";
+            return;
+        }
+
+        if (password.length < MIN_PASSWORD_CHARS) {
+            document.getElementById("form-error").innerText = "Passwords must have at least 8 characters.";
+        }
+
+        const inviteToken = new URL(location.href).searchParams.get("token");
+        const options = inviteToken
+            ? { query: { token: inviteToken } }
+            : undefined;
+
+        try {
+            await signupUser(formData, options);
+        } catch (err) {
+            console.error("error submitting", err, JSON.stringify(err));
+        }
+    }
+
+    function resetFormErrorElement() {
+        document.getElementById("form-error").innerText = "";
+    }
+</script>
+{{end}}

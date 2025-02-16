@@ -44,6 +44,19 @@ func main() {
 		se.Router.GET("/signup", func(e *core.RequestEvent) error {
 			token := e.Request.URL.Query().Get("token")
 
+			if token == "" {
+				html, err := registry.LoadFiles(
+					"views/layout.gohtml",
+					"views/signup.gohtml",
+				).Render(nil)
+
+				if err != nil {
+					return e.InternalServerError(err.Error(), err)
+				}
+
+				return e.HTML(http.StatusOK, html)
+			}
+
 			/**
 			 * 1. Verify the token (using Pocketbases utils and the SECRET)
 			 * 2. decode and parse the token
@@ -72,8 +85,8 @@ func main() {
 			}
 
 			html, err := registry.LoadFiles(
-				"views/layout.html",
-				"views/signup.html",
+				"views/layout.gohtml",
+				"views/signup.gohtml",
 			).Render(map[string]string{
 				"inviterEmail": inviterEmail,
 				"inviteeEmail": inviteeEmail,

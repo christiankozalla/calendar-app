@@ -11,6 +11,7 @@ import (
 	_ "github.com/christiankozalla/calendar-app/migrations"
 
 	"github.com/pocketbase/pocketbase"
+	"github.com/pocketbase/pocketbase/apis"
 	"github.com/pocketbase/pocketbase/core"
 	"github.com/pocketbase/pocketbase/plugins/migratecmd"
 	"github.com/pocketbase/pocketbase/tools/security"
@@ -86,6 +87,14 @@ func main() {
 		})
 
 		return se.Next()
+	})
+
+	app.OnServe().BindFunc(func(e *core.ServeEvent) error {
+		if !e.Router.HasRoute(http.MethodGet, "/{path...}") {
+			e.Router.GET("/{path...}", apis.Static(os.DirFS("pb_public"), false))
+		}
+
+		return e.Next()
 	})
 
 	if err := app.Start(); err != nil {

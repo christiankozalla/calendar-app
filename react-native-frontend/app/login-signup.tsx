@@ -86,6 +86,7 @@ export default function LoginSignup() {
 			if (activeTab === "login") {
 				await loginUser({ email, password });
 			} else {
+				// signup
 				const options = inviteToken
 					? { query: { token: inviteToken } }
 					: undefined;

@@ -13,5 +13,8 @@
   },
   "[vue]": {
     "editor.defaultFormatter": "biomejs.biome"
+  },
+  "go.alternateTools": {
+    "go": "/Users/christiankozalla/projects/calendar-app/.devbox/nix/profile/default/bin/go"
   }
 }

@@ -17,7 +17,7 @@ import { AuthState } from "@/store/Authentication";
 import { type JwtBaseClaims, parse } from "@/utils/jwt";
 import { globalstyles } from "@/utils/globalstyles";
 import { StatusBar } from "expo-status-bar";
-import type { PersonsRecord } from "@/api/pocketbase-types";
+import { Collections, type PersonsRecord } from "@/api/pocketbase-types";
 import { KeyboardAvoidingComponent } from "@/components/KeyboardAvoidingComponent";
 
 type SignupData = {
@@ -38,7 +38,7 @@ const loginUser = async ({
 	password,
 }: Pick<SignupData, "email" | "password">) => {
 	console.log("Logging in user:", email);
-	await pb.collection("users").authWithPassword(email, password);
+	await pb.collection(Collections.Users).authWithPassword(email, password);
 };
 
 const signupUser = async (
@@ -46,8 +46,8 @@ const signupUser = async (
 	options?: RecordOptions,
 ) => {
 	console.log("Signing up user:", data.email);
-	const user = await pb.collection("users").create(data, options);
-	await pb.collection("persons").create({ name: data.name, user: user.id });
+	const user = await pb.collection(Collections.Users).create(data, options);
+	await pb.collection(Collections.Persons).create({ name: data.name, user: user.id });
 	await loginUser({ email: data.email, password: data.password });
 };
 
@@ -94,7 +94,7 @@ export default function LoginSignup() {
 			router.replace("/");
 		} catch (err) {
 			if (err instanceof ClientResponseError) {
-				console.log("error", err);
+				console.log("error", JSON.stringify(err));
 			}
 		} finally {
 			setLoading(false);

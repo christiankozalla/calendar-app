@@ -1,10 +1,9 @@
 import { Fragment, useCallback, useState } from "react";
-import { View, Text, StyleSheet } from "react-native";
+import { View, Text, TextInput, StyleSheet } from "react-native";
 import { createURL } from "expo-linking";
 import { pb } from "@/api/pocketbase";
 import { CopyableText } from "./CopyableText";
 import { Button } from "./Button";
-import { BottomSheetTextInput } from "@gorhom/bottom-sheet";
 import type { CalendarsStateType } from "@/store/Calendars";
 import { UserState } from "@/store/Authentication";
 import { useRecoilValue } from "recoil";
@@ -53,7 +52,7 @@ export const CreateInvitationPanel = ({ calendar }: Props) => {
 		<Fragment>
 			<Text style={styles.title}>Invite people to {calendar.name}</Text>
 			<View style={styles.form}>
-				<BottomSheetTextInput
+				<TextInput
 					style={styles.input}
 					placeholder="Email of the person you want to invite"
 					placeholderTextColor="#999"
@@ -65,7 +64,7 @@ export const CreateInvitationPanel = ({ calendar }: Props) => {
 				<Button
 					label="Generate Invitation Link"
 					onPress={inviteNewUser}
-					disabled={!inviteeEmail.trim()}
+					disabled={!inviteeEmail.trim() || Boolean(invitationLink)}
 				/>
 			</View>
 

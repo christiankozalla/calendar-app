@@ -1,6 +1,7 @@
-import { useState, type ReactNode } from "react";
-import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import { Fragment, useState, type ReactNode } from "react";
+import { View, Text, StyleSheet } from "react-native";
 import * as Clipboard from "expo-clipboard";
+import { Button } from "./Button";
 
 type Props = {
 	text: string;
@@ -21,25 +22,22 @@ export const CopyableText = ({ text, children }: Props) => {
 	};
 
 	return (
-		<View style={styles.container}>
+		<Fragment>
+			<Button style={styles.button} onPress={handleCopy} label={copied ? "✓" : "Copy"} />
+			<View style={styles.container}>
 			{children || (
 				<Text numberOfLines={1} ellipsizeMode="tail" style={styles.text}>
 					{text}
 				</Text>
 			)}
-			<View style={styles.buttonContainer}>
-				{copied && <Text style={styles.copiedText}>Copied!</Text>}
-				<TouchableOpacity style={styles.button} onPress={handleCopy}>
-					<Text style={styles.buttonText}>{copied ? "✓" : "Copy"}</Text>
-				</TouchableOpacity>
-			</View>
 		</View>
+
+		</Fragment>
 	);
 };
 
 const styles = StyleSheet.create({
 	container: {
-		flexDirection: "row",
 		alignItems: "center",
 		justifyContent: "space-between",
 		padding: 10,
@@ -48,28 +46,15 @@ const styles = StyleSheet.create({
 		borderRadius: 8,
 		backgroundColor: "#f5f5f5",
 	},
-	buttonContainer: {
-		gap: 8,
-		alignItems: "center",
-		justifyContent: "center",
-	},
 	text: {
 		flex: 1,
 	},
-	copiedText: {
-		fontSize: 12,
-		color: "green",
-		marginLeft: 8,
-	},
 	button: {
 		backgroundColor: "#e0e0e0",
+		marginBottom: 12,
 		paddingVertical: 6,
 		paddingHorizontal: 12,
 		borderRadius: 4,
-		marginLeft: 8,
-	},
-	buttonText: {
-		fontSize: 14,
-		color: "#333",
+		width: "100%"
 	},
 });

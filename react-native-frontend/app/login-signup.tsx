@@ -46,8 +46,7 @@ const signupUser = async (
 	options?: RecordOptions,
 ) => {
 	console.log("Signing up user:", data.email);
-	const user = await pb.collection(Collections.Users).create(data, options);
-	await pb.collection(Collections.Persons).create({ name: data.name, user: user.id });
+	await pb.collection(Collections.Users).create(data, options);
 	await loginUser({ email: data.email, password: data.password });
 };
 
@@ -163,6 +162,7 @@ export default function LoginSignup() {
 							onChangeText={setPassword}
 							secureTextEntry
 							placeholderTextColor="#999"
+							autoCapitalize="none"
 						/>
 						{activeTab === "signup" && (
 							<TextInput
@@ -172,6 +172,7 @@ export default function LoginSignup() {
 								onChangeText={setPasswordConfirm}
 								secureTextEntry
 								placeholderTextColor="#999"
+								autoCapitalize="none"
 							/>
 						)}
 					</KeyboardAvoidingComponent>

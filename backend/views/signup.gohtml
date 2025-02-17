@@ -32,7 +32,7 @@ Suntimes App - Signup
     <p id="form-error"></p>
 </form>
 
-<!-- Maybe this is overfill because the HTTP request can be performed be without the PocketBase client SDK -->
+<!-- Maybe this is overkill because the HTTP request can be performed be without the PocketBase client SDK -->
 <script type="module" src="/js/pocketbase.umd.js"></script>
 <script type="module">
     const MIN_PASSWORD_CHARS = 8
@@ -45,14 +45,6 @@ Suntimes App - Signup
     passwordConfirmInput.addEventListener("input", resetFormErrorElement);
 
     const pb = new PocketBase("/");
-
-    async function signupUser(
-        formData,
-        options,
-    ) {
-        const user = await pb.collection("users").create(formData, options);
-        await pb.collection("persons").create({ name: formData.get("name"), user: user.id });
-    };
 
     async function onSubmit(event) {
         event.preventDefault();
@@ -75,7 +67,7 @@ Suntimes App - Signup
             : undefined;
 
         try {
-            await signupUser(formData, options);
+            await pb.collection("users").create(formData, options);
         } catch (err) {
             console.error("error submitting", err, JSON.stringify(err));
         }

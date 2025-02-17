@@ -14,6 +14,7 @@ import (
 	"github.com/pocketbase/pocketbase/apis"
 	"github.com/pocketbase/pocketbase/core"
 	"github.com/pocketbase/pocketbase/plugins/migratecmd"
+	"github.com/pocketbase/pocketbase/tools/hook"
 	"github.com/pocketbase/pocketbase/tools/security"
 	"github.com/pocketbase/pocketbase/tools/template"
 )
@@ -31,8 +32,16 @@ func main() {
 		Automigrate: os.Getenv("AUTOMIGRATE") == "true",
 	})
 
-	app.OnRecordCreateRequest("invitations").BindFunc(eventhandlers.OnBeforeCreateInvitation(app))
-	app.OnRecordCreateRequest("users").BindFunc(eventhandlers.OnAfterUsersCreateHandleInvitation(app))
+	app.OnRecordCreateRequest("invitations").BindFunc(eventhandlers.OnBeforeCreateInvitation)
+
+	app.OnRecordCreateRequest("users").Bind(&hook.Handler[*core.RecordRequestEvent]{
+		Func:     eventhandlers.OnAfterUsersCreateCreatePerson,
+		Priority: 1, // runs first
+	})
+	app.OnRecordCreateRequest("users").Bind(&hook.Handler[*core.RecordRequestEvent]{
+		Func:     eventhandlers.OnAfterUsersCreateHandleInvitation,
+		Priority: 2, // runs second
+	})
 
 	app.OnRecordCreateRequest("events").BindFunc(eventhandlers.SanitizeDescriptionOnCreate)
 	app.OnRecordUpdateRequest("events").BindFunc(eventhandlers.SanitizeDescriptionOnUpdate)

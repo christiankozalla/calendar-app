@@ -1,9 +1,9 @@
-import type { CalendarsResponse, UsersResponse } from "@/api/pocketbase-types";
-import { View, Text, StyleSheet, TextInput } from "react-native";
+import type { CalendarsResponse } from "@/api/pocketbase-types";
+import { View, Text, StyleSheet } from "react-native";
 import { useState } from "react";
 import { pb, PbOperations } from "@/api/pocketbase";
 import { Button } from "@/components/Button";
-import { BottomSheetView } from "@gorhom/bottom-sheet";
+import { BottomSheetView, BottomSheetTextInput } from "@gorhom/bottom-sheet";
 import { generateUUID } from "@/utils/uuid";
 import { bottomsheetStyles } from "@/utils/bottomsheetStyles";
 
@@ -45,11 +45,13 @@ export const CreateCalendarPanel = ({ onSuccess, onFailure }: Props) => {
 				bottomsheetStyles.paddingTop,
 				bottomsheetStyles.paddingHorizontal,
 				bottomsheetStyles.paddingBottom,
+				{ height: 240 }
 			]}
 		>
 			<View style={styles.container}>
 				<Text style={styles.title}>Create Calendar</Text>
-				<TextInput
+				{/* BottomSheetTextInput acts keyboard avoiding out of the box */}
+				<BottomSheetTextInput
 					style={styles.input}
 					value={name}
 					onChangeText={setName}

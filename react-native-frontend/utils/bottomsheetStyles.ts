@@ -2,7 +2,7 @@ import { StyleSheet } from "react-native";
 
 export const bottomsheetStyles = StyleSheet.create({
 	container: {
-		marginTop: 24,
+		marginTop: 40,
 		borderTopLeftRadius: 16,
 		borderTopRightRadius: 16,
 		borderWidth: 1,

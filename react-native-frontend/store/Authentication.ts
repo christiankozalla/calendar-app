@@ -2,6 +2,7 @@
 import { atom, type AtomEffect } from "recoil";
 import { pb } from "@/api/pocketbase";
 import type { PersonsResponse, UsersResponse } from "@/api/pocketbase-types";
+import { withRetry } from "@/utils/retry";
 
 const getAuthStateFromPocketBaseSDK: AtomEffect<boolean> = ({
 	trigger,
@@ -51,6 +52,14 @@ const getUserFromPocketBaseSDK: AtomEffect<UsersResponse | null> = ({
 	}
 };
 
+const fetchUserPerson = withRetry((userId: string) =>
+	pb
+		.collection("persons")
+		.getFirstListItem<PersonsResponse>(
+			pb.filter("user = {:userId}", { userId }),
+		),
+);
+
 const getUserPersonFromPocketBaseSDK: AtomEffect<PersonsResponse | null> = ({
 	trigger,
 	setSelf,
@@ -58,10 +67,7 @@ const getUserPersonFromPocketBaseSDK: AtomEffect<PersonsResponse | null> = ({
 	console.log("Running getUserPersonFromPocketBaseSDK Effect");
 	if (trigger === "get") {
 		if (pb.authStore.record?.id) {
-			pb.collection("persons")
-				.getFirstListItem<PersonsResponse>(
-					pb.filter("user = {:userId}", { userId: pb.authStore.record.id }),
-				)
+			fetchUserPerson(pb.authStore.record.id)
 				.then(setSelf)
 				.catch((err) => {
 					console.error("Error getting user person", err?.data || err);

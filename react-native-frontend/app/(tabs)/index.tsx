@@ -141,7 +141,7 @@ export default function HomeScreen() {
 				},
 			);
 		}
-	}, []);
+	}, [user]);
 
 	const createCalendar = async () => {
 		const { promise, resolve, reject } =

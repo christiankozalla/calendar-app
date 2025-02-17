@@ -42,6 +42,7 @@ import { bottomsheetStyles } from "@/utils/bottomsheetStyles";
 import { getTextColorBasedOnBg } from "@/utils/color";
 
 const findEventsForDay = (events: EventWithPersons[], day: Date | string) => {
+	// biome-ignore lint: ok in this case
 	day = typeof day === "string" ? new Date(day) : day;
 	return events?.filter((e) => {
 		return !e.endDatetime
@@ -102,7 +103,7 @@ export default function CalendarScreen() {
 					setLoading(false);
 				});
 		}
-	}, [calendarId]);
+	}, [calendarId, setCalendars]);
 
 	useEffect(() => {
 		const subscribeToEvents = async () => {
@@ -195,6 +196,7 @@ export default function CalendarScreen() {
 		[events, colors],
 	);
 
+	// biome-ignore lint: showEventList is not a dependency
 	const onDayPress = useCallback(
 		(day: DateData) => {
 			if (selected === day.dateString) {
@@ -203,7 +205,7 @@ export default function CalendarScreen() {
 				setSelected(day.dateString as `${number}-${number}-${number}`);
 			}
 		},
-		[events, selected],
+		[selected],
 	);
 
 	const markedDatesWithSelected = selected

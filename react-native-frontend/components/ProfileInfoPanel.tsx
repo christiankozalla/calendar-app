@@ -154,7 +154,7 @@ const ProfileEditor = ({
 		setUserPerson(userPersonRecord);
 		setEditProfile(false);
 		setUpdating(false);
-	}, [name, avatar]);
+	}, [name, avatar, profile, setGlobalCalendars, setUserPerson]);
 
 	const Buttons = () => {
 		if (editProfile)

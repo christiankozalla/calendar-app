@@ -33,7 +33,7 @@ export const Avatar = ({
 	uri,
 	size,
 	style
-}: { uri?: string | null; size: keyof typeof sizes, style: StyleProp<ImageStyle> & StyleProp<TextStyle> }) => {
+}: { uri?: string | null; size: keyof typeof sizes, style?: StyleProp<ImageStyle> & StyleProp<TextStyle> }) => {
 	return (
 		<Fragment>
 			{uri ? (

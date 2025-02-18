@@ -12,12 +12,13 @@ import {
 	Dimensions,
 	Keyboard,
 	TouchableWithoutFeedback,
+	TextInput,
 	Alert,
+	Platform,
 } from "react-native";
 import {
 	BottomSheetModal,
 	BottomSheetModalProvider,
-	BottomSheetTextInput,
 	BottomSheetView,
 	useBottomSheetModal,
 	TouchableOpacity,
@@ -37,6 +38,7 @@ import Checkbox from "expo-checkbox";
 import { typography } from "@/utils/typography";
 import { Button } from "./Button";
 import { CalendarsState } from "@/store/Calendars";
+import { AndroidDateTimePicker } from "./AndroidDateTimePicker";
 
 type Props = {
 	persons?: PersonsResponse[];
@@ -83,7 +85,9 @@ export const EventCreateUpdatePanel = ({
 	);
 	const [selectedColor, setSelectedColor] = useState(color);
 	const colors = useRecoilValue(ColorsState);
+	const [showDatePicker, setShowDatePicker] = useState(true);
 
+	// biome-ignore lint: ok
 	const handleSubmit = useCallback(async () => {
 		const startDateTime = mergeDates(startDate, startTime);
 		const endDateTime = mergeDates(endDate, endTime);
@@ -127,13 +131,14 @@ export const EventCreateUpdatePanel = ({
 		endTime,
 		selectedPersons,
 		selectedColor,
+		bottomSheetModal
 	]);
 
 	const onChange =
 		(dateSetter: Dispatch<SetStateAction<Date>>) =>
 		(_event: unknown, selectedDate?: Date) => {
+			setShowDatePicker(Platform.OS === "ios"); // Keep the picker open for iOS
 			const currentDate = selectedDate || new Date(startDate);
-			// setShowPicker(Platform.OS === "ios"); // Keep the picker open for iOS
 			dateSetter(currentDate);
 		};
 
@@ -168,7 +173,8 @@ export const EventCreateUpdatePanel = ({
 					/>
 				</View>
 
-				<BottomSheetTextInput
+				{/* BottomSheetTextInput causes a lot of blank space above the keyboard on Android */}
+				<TextInput
 					style={[styles.input, bottomsheetStyles.marginHorizontal]}
 					placeholder="Event Title"
 					placeholderTextColor="#999"
@@ -185,18 +191,34 @@ export const EventCreateUpdatePanel = ({
 				>
 					<Text style={styles.label}>Start Date</Text>
 					<View style={styles.flexRow}>
-						<DateTimePicker
-							value={startDate}
-							mode="date"
-							textColor="black"
-							onChange={onChange(setStartDate)}
-						/>
-						<DateTimePicker
-							value={startTime}
-							mode="time"
-							textColor="black"
-							onChange={onChange(setStartTime)}
-						/>
+						{Platform.OS === "ios" ? (
+							<DateTimePicker
+								value={startDate}
+								mode="date"
+								textColor="black"
+								onChange={onChange(setStartDate)}
+							/>
+						) : (
+							<AndroidDateTimePicker
+								value={startDate}
+								mode="date"
+								onChange={onChange(setStartDate)}
+							/>
+						)}
+						{Platform.OS === "ios" ? (
+							<DateTimePicker
+								value={startTime}
+								mode="time"
+								textColor="black"
+								onChange={onChange(setStartTime)}
+							/>
+						) : (
+							<AndroidDateTimePicker
+								value={startTime}
+								mode="time"
+								onChange={onChange(setStartTime)}
+							/>
+						)}
 					</View>
 				</View>
 
@@ -208,22 +230,38 @@ export const EventCreateUpdatePanel = ({
 				>
 					<Text style={styles.label}>End Date (optional)</Text>
 					<View style={styles.flexRow}>
-						<DateTimePicker
-							value={endDate}
-							mode="date"
-							textColor="black"
-							onChange={onChange(setEndDate)}
-						/>
-						<DateTimePicker
-							value={endTime}
-							mode="time"
-							textColor="black"
-							onChange={onChange(setEndTime)}
-						/>
+						{Platform.OS === "ios" ? (
+							<DateTimePicker
+								value={endDate}
+								mode="date"
+								textColor="black"
+								onChange={onChange(setEndDate)}
+							/>
+						) : (
+							<AndroidDateTimePicker
+								value={endDate}
+								mode="date"
+								onChange={onChange(setEndDate)}
+							/>
+						)}
+						{Platform.OS === "ios" ? (
+							<DateTimePicker
+								value={endTime}
+								mode="time"
+								textColor="black"
+								onChange={onChange(setEndTime)}
+							/>
+						) : (
+							<AndroidDateTimePicker
+								value={endTime}
+								mode="time"
+								onChange={onChange(setEndTime)}
+							/>
+						)}
 					</View>
 				</View>
-
-				<BottomSheetTextInput
+				{/* BottomSheetTextInput causes a lot of blank space above the keyboard on Android */}
+				<TextInput
 					style={[
 						styles.input,
 						styles.textArea,
@@ -350,6 +388,7 @@ const styles = StyleSheet.create({
 		marginBottom: 12,
 	},
 	textArea: {
+		textAlignVertical: "top",
 		height: 100,
 	},
 	dateTimeContainer: {

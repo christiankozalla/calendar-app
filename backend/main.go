@@ -57,7 +57,11 @@ func main() {
 				html, err := registry.LoadFiles(
 					"views/layout.gohtml",
 					"views/signup.gohtml",
-				).Render(nil)
+				).Render(
+					map[string]any{
+						"inviteToken": token,
+					},
+				)
 
 				if err != nil {
 					return e.InternalServerError(err.Error(), err)
@@ -97,6 +101,7 @@ func main() {
 				"views/layout.gohtml",
 				"views/signup.gohtml",
 			).Render(map[string]string{
+				"inviteToken":  token,
 				"inviterEmail": inviterEmail,
 				"inviteeEmail": inviteeEmail,
 			})
@@ -108,15 +113,12 @@ func main() {
 			return e.HTML(http.StatusOK, html)
 		})
 
-		return se.Next()
-	})
-
-	app.OnServe().BindFunc(func(e *core.ServeEvent) error {
-		if !e.Router.HasRoute(http.MethodGet, "/{path...}") {
-			e.Router.GET("/{path...}", apis.Static(os.DirFS("pb_public"), false))
+		// Static files
+		if !se.Router.HasRoute(http.MethodGet, "/{path...}") {
+			se.Router.GET("/{path...}", apis.Static(os.DirFS("pb_public"), false))
 		}
 
-		return e.Next()
+		return se.Next()
 	})
 
 	if err := app.Start(); err != nil {

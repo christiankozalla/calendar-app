@@ -85,9 +85,7 @@ export const EventCreateUpdatePanel = ({
 	);
 	const [selectedColor, setSelectedColor] = useState(color);
 	const colors = useRecoilValue(ColorsState);
-	const [showDatePicker, setShowDatePicker] = useState(true);
 
-	// biome-ignore lint: ok
 	const handleSubmit = useCallback(async () => {
 		const startDateTime = mergeDates(startDate, startTime);
 		const endDateTime = mergeDates(endDate, endTime);
@@ -137,7 +135,6 @@ export const EventCreateUpdatePanel = ({
 	const onChange =
 		(dateSetter: Dispatch<SetStateAction<Date>>) =>
 		(_event: unknown, selectedDate?: Date) => {
-			setShowDatePicker(Platform.OS === "ios"); // Keep the picker open for iOS
 			const currentDate = selectedDate || new Date(startDate);
 			dateSetter(currentDate);
 		};
@@ -191,6 +188,7 @@ export const EventCreateUpdatePanel = ({
 				>
 					<Text style={styles.label}>Start Date</Text>
 					<View style={styles.flexRow}>
+						{/* Alternative DateTimePicker: https://github.com/henninghall/react-native-date-picker */}
 						{Platform.OS === "ios" ? (
 							<DateTimePicker
 								value={startDate}

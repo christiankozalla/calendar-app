@@ -273,7 +273,10 @@ export default function EventComments() {
 			<StatusBar style="dark" />
 			<View style={globalstyles.container}>
 				<Header style={[globalstyles.header, styles.header]}>
-					<Link href={`/calendars/${calendarId as string}/chat`} style={styles.link}>
+					<Link
+						href={`/calendars/${calendarId as string}/chat`}
+						style={styles.link}
+					>
 						<TabBarIcon name="arrow-back" size={18} />
 					</Link>
 					<Text style={globalstyles.headerText}>{event?.title}</Text>

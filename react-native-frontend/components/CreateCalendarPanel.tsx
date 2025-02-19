@@ -45,7 +45,7 @@ export const CreateCalendarPanel = ({ onSuccess, onFailure }: Props) => {
 				bottomsheetStyles.paddingTop,
 				bottomsheetStyles.paddingHorizontal,
 				bottomsheetStyles.paddingBottom,
-				{ height: 240 }
+				{ height: 240 },
 			]}
 		>
 			<View style={styles.container}>

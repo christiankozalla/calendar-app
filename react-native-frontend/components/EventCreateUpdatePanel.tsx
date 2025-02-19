@@ -131,7 +131,7 @@ export const EventCreateUpdatePanel = ({
 		endTime,
 		selectedPersons,
 		selectedColor,
-		bottomSheetModal
+		bottomSheetModal,
 	]);
 
 	const onChange =

@@ -254,7 +254,9 @@ export default function CalendarScreen() {
 						<Avatar size="small" uri={avatarUri} />
 					</Link>
 					{calendarFromBackend?.name && (
-						<Text style={globalstyles.headerText}>{calendarFromBackend?.name}</Text>
+						<Text style={globalstyles.headerText}>
+							{calendarFromBackend?.name}
+						</Text>
 					)}
 				</Header>
 

@@ -23,15 +23,18 @@ export const CopyableText = ({ text, children }: Props) => {
 
 	return (
 		<Fragment>
-			<Button style={styles.button} onPress={handleCopy} label={copied ? "✓" : "Copy"} />
+			<Button
+				style={styles.button}
+				onPress={handleCopy}
+				label={copied ? "✓" : "Copy"}
+			/>
 			<View style={styles.container}>
-			{children || (
-				<Text numberOfLines={1} ellipsizeMode="tail" style={styles.text}>
-					{text}
-				</Text>
-			)}
-		</View>
-
+				{children || (
+					<Text numberOfLines={1} ellipsizeMode="tail" style={styles.text}>
+						{text}
+					</Text>
+				)}
+			</View>
 		</Fragment>
 	);
 };
@@ -55,6 +58,6 @@ const styles = StyleSheet.create({
 		paddingVertical: 6,
 		paddingHorizontal: 12,
 		borderRadius: 4,
-		width: "100%"
+		width: "100%",
 	},
 });

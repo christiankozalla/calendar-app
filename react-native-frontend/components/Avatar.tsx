@@ -1,4 +1,9 @@
-import { Image, type TextStyle, type ImageStyle, type StyleProp } from "react-native";
+import {
+	Image,
+	type TextStyle,
+	type ImageStyle,
+	type StyleProp,
+} from "react-native";
 import { TabBarIcon } from "./navigation/TabBarIcon";
 import { Fragment } from "react";
 
@@ -32,8 +37,12 @@ const sizes = {
 export const Avatar = ({
 	uri,
 	size,
-	style
-}: { uri?: string | null; size: keyof typeof sizes, style?: StyleProp<ImageStyle> & StyleProp<TextStyle> }) => {
+	style,
+}: {
+	uri?: string | null;
+	size: keyof typeof sizes;
+	style?: StyleProp<ImageStyle> & StyleProp<TextStyle>;
+}) => {
 	return (
 		<Fragment>
 			{uri ? (

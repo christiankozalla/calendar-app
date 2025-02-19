@@ -274,6 +274,6 @@ const styles = StyleSheet.create({
 	},
 	link: {
 		paddingHorizontal: 12,
-		height: "100%"
-	}
+		height: "100%",
+	},
 });

@@ -112,7 +112,7 @@ export const ConfigureCalendarPanel = ({
 			],
 			{ cancelable: true },
 		);
-	}, [calendarId]);
+	}, [calendars, calendarId, dismiss]);
 
 	const removePersonFromCalendarHandler = (p: PersonsResponse) => () => {
 		Alert.alert(

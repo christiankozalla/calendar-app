@@ -45,7 +45,7 @@ export const CreateCalendarPanel = ({ onSuccess, onFailure }: Props) => {
 				bottomsheetStyles.paddingTop,
 				bottomsheetStyles.paddingHorizontal,
 				bottomsheetStyles.paddingBottom,
-				{ height: 240 },
+				{ height: 300 }, // this height needs to be "high enough" to prevent the bottom-sheet to close on BottomSheetTextInput foucs..
 			]}
 		>
 			<View style={styles.container}>

@@ -274,7 +274,7 @@ export default function EventComments() {
 			<View style={globalstyles.container}>
 				<Header style={[globalstyles.header, styles.header]}>
 					<Link
-						href={`/calendars/${calendarId as string}/chat`}
+						href={`/calendars/${calendarId as string}/comments`}
 						style={styles.link}
 					>
 						<TabBarIcon name="arrow-back" size={18} />

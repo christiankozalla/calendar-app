@@ -84,7 +84,7 @@ export default function CommentsScreen() {
 					}
 					renderItem={({ item: event }) => (
 						<Link
-							href={`/(tabs)/calendars/${calendarId}/chat/${event.id}`}
+							href={`/(tabs)/calendars/${calendarId}/comments/${event.id}`}
 							style={styles.eventCard}
 						>
 							<Text style={styles.eventTitle}>

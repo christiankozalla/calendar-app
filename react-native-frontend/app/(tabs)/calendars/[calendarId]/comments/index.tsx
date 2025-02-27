@@ -20,7 +20,7 @@ import { Header } from "@/components/Header";
 /**
  * 1. Fetch events that have recent/newest messages
  * 2. Display a list of these events: title, persons, date, most recent message
- * 3. When an event is clicked, display a chat view with messages -> route /(tabs)/calendars/[calendarId]/chat/[eventId] (can be accessed from an EventDetailsPanel, too)
+ * 3. When an event is clicked, display a chat view with messages -> route /(tabs)/calendars/[calendarId]/commments/[eventId] (can be accessed from an EventDetailsPanel, too)
  *
  * So this page only displays a list of events with recent messages, and when an event is clicked, it opens a chat view with messages.
  * This list is not reactive, so it doesn't update in real-time when new messages are added. But we could add a subscription to messages to refetch the list when a new message of that calendar is added.
@@ -47,7 +47,7 @@ export default function CommentsScreen() {
 		const response = await pb
 			.collection(Collections.EventsByMessage)
 			.getList<EventsByMessageResponse<string>>(undefined, 100, {
-				// TODO: define a filter: what events should a user see in the chat list?
+				// TODO: define a filter: what events should a user see in the comments list?
 				// 1. Events that he/she is part of?
 				// 2. Events that he/she owns (only)?
 				filter: pb.filter("calendar = {:calendarId}", { calendarId }),
@@ -72,7 +72,7 @@ export default function CommentsScreen() {
 
 			<View style={styles.container}>
 				<Header style={styles.header}>
-					<Text style={styles.headerText}>Chat</Text>
+					<Text style={styles.headerText}>Comments</Text>
 				</Header>
 
 				<FlatList
@@ -137,9 +137,6 @@ const styles = StyleSheet.create({
 	separator: {
 		height: 8,
 	},
-	messageSeparator: {
-		height: 8,
-	},
 	eventCard: {
 		flexDirection: "column",
 		padding: 16,
@@ -169,58 +166,5 @@ const styles = StyleSheet.create({
 		fontSize: 14,
 		color: "#333",
 		lineHeight: 20,
-	},
-	chatContainer: {
-		flex: 1,
-		padding: 16,
-	},
-	chatTitle: {
-		fontSize: 20,
-		fontWeight: "600",
-		marginBottom: 16,
-	},
-	messageList: {
-		paddingBottom: 16,
-	},
-	messageContainer: {
-		padding: 12,
-		backgroundColor: "#f2f2f2",
-		borderRadius: 8,
-	},
-	authorName: {
-		fontSize: 14,
-		fontWeight: "600",
-	},
-	messageText: {
-		fontSize: 14,
-		marginTop: 4,
-	},
-	inputContainer: {
-		flexDirection: "row",
-		alignItems: "center",
-		marginTop: 16,
-		gap: 8,
-	},
-	input: {
-		flex: 1,
-		borderWidth: 1,
-		borderColor: "#ddd",
-		borderRadius: 8,
-		padding: 8,
-		maxHeight: 100,
-	},
-	sendButton: {
-		backgroundColor: "#007AFF",
-		padding: 12,
-		borderRadius: 8,
-		justifyContent: "center",
-		alignItems: "center",
-	},
-	sendButtonDisabled: {
-		backgroundColor: "#ccc",
-	},
-	sendButtonText: {
-		color: "white",
-		fontWeight: "600",
 	},
 });

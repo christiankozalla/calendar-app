@@ -108,7 +108,9 @@ const ProfileEditor = ({
 		: null;
 
 	const saveAvatarAndName = useCallback(async () => {
-		const data: Partial<PersonsRecord> = {};
+		const data: Partial<PersonsRecord> = {
+			user: user.id
+		};
 
 		if (name?.trim() && name.trim() !== profile?.name) {
 			data.name = name.trim();
@@ -154,7 +156,7 @@ const ProfileEditor = ({
 		setUserPerson(userPersonRecord);
 		setEditProfile(false);
 		setUpdating(false);
-	}, [name, avatar, profile, setGlobalCalendars, setUserPerson]);
+	}, [name, avatar, profile, user, setGlobalCalendars, setUserPerson]);
 
 	const Buttons = () => {
 		if (editProfile)
@@ -198,6 +200,7 @@ const ProfileEditor = ({
 					style={typography.h3}
 					value={name}
 					onChangeText={setName}
+					autoCorrect={false}
 				/>
 			</View>
 		</Fragment>

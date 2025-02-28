@@ -19,6 +19,7 @@ export enum Collections {
 	Locations = "locations",
 	Messages = "messages",
 	Persons = "persons",
+	SharedNotes = "sharedNotes",
 	Users = "users",
 }
 
@@ -175,6 +176,17 @@ export type PersonsRecord = {
 	user?: RecordIdString;
 };
 
+export type SharedNotesRecord = {
+	calendar?: RecordIdString;
+	created?: IsoDateString;
+	id: string;
+	owner?: RecordIdString;
+	text?: HTMLString;
+	title?: string;
+	updated?: IsoDateString;
+	users?: RecordIdString[];
+};
+
 export type UsersRecord = {
 	created?: IsoDateString;
 	email?: string;
@@ -216,6 +228,8 @@ export type MessagesResponse<Texpand = unknown> = Required<MessagesRecord> &
 	BaseSystemFields<Texpand>;
 export type PersonsResponse<Texpand = unknown> = Required<PersonsRecord> &
 	BaseSystemFields<Texpand>;
+export type SharedNotesResponse<Texpand = unknown> =
+	Required<SharedNotesRecord> & BaseSystemFields<Texpand>;
 export type UsersResponse<Texpand = unknown> = Required<UsersRecord> &
 	AuthSystemFields<Texpand>;
 
@@ -235,6 +249,7 @@ export type CollectionRecords = {
 	locations: LocationsRecord;
 	messages: MessagesRecord;
 	persons: PersonsRecord;
+	sharedNotes: SharedNotesRecord;
 	users: UsersRecord;
 };
 
@@ -252,6 +267,7 @@ export type CollectionResponses = {
 	locations: LocationsResponse;
 	messages: MessagesResponse;
 	persons: PersonsResponse;
+	sharedNotes: SharedNotesResponse;
 	users: UsersResponse;
 };
 
@@ -274,5 +290,6 @@ export type TypedPocketBase = PocketBase & {
 	collection(idOrName: "locations"): RecordService<LocationsResponse>;
 	collection(idOrName: "messages"): RecordService<MessagesResponse>;
 	collection(idOrName: "persons"): RecordService<PersonsResponse>;
+	collection(idOrName: "sharedNotes"): RecordService<SharedNotesResponse>;
 	collection(idOrName: "users"): RecordService<UsersResponse>;
 };

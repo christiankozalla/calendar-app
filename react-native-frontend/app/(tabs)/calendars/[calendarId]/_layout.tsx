@@ -52,11 +52,11 @@ export default function TabLayout() {
 				}}
 			/>
 			<Tabs.Screen
-				name="activity"
+				name="shared-notes/index"
 				options={{
-					tabBarLabel: "Activity",
+					tabBarLabel: "Shared Notes",
 					tabBarIcon: ({ color }) => (
-						<TabBarIcon name="notifications-outline" color={color} />
+						<TabBarIcon name="reader-outline" color={color} />
 					),
 				}}
 			/>

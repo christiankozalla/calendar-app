@@ -31,7 +31,7 @@
     "react": "18.3.1",
     "react-dom": "18.3.1",
     "react-native": "0.76.7",
-    "react-native-calendars": "git+https://github.com/christiankozalla/react-native-calendars.git#ac3f73a43f636862b431b0277ff8ebcf71cd80a8",
+    "react-native-calendars": "git+https://github.com/christiankozalla/react-native-calendars.git#b9a7dc6720cbe06683becd8233705a1f5aa3be8b",
     "react-native-reanimated": "~3.16.1",
     "react-native-screens": "~4.4.0",
     "react-native-sse": "^1.2.1",

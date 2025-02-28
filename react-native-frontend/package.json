@@ -7,7 +7,7 @@
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
-    "pocketbase:typegen": "npx pocketbase-typegen --db ../pb_data/data.db --out ./api/pocketbase-types.ts && npx @biomejs/biome format --write ./api/pocketbase-types.ts",
+    "pocketbase:typegen": "npx pocketbase-typegen --db ../backend/pb_data/data.db --out ./api/pocketbase-types.ts && npx @biomejs/biome format --write ./api/pocketbase-types.ts",
     "format": "npx @biomejs/biome format --write ."
   },
   "dependencies": {

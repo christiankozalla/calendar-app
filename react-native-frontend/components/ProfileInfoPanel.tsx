@@ -109,7 +109,7 @@ const ProfileEditor = ({
 
 	const saveAvatarAndName = useCallback(async () => {
 		const data: Partial<PersonsRecord> = {
-			user: user.id
+			user: user.id,
 		};
 
 		if (name?.trim() && name.trim() !== profile?.name) {

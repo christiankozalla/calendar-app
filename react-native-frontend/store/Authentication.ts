@@ -70,6 +70,10 @@ const getUserPersonFromPocketBaseSDK: AtomEffect<PersonsResponse | null> = ({
 			fetchUserPerson(pb.authStore.record.id)
 				.then(setSelf)
 				.catch((err) => {
+					// at this point, retry has failed, so in case err.code === 404 the user has no UserPerson yet
+					// if (err.code === 404) {
+					// 	open ProfileInfoPanel bottomsheet and encourage user to set a name and an avatar
+					// }
 					console.error("Error getting user person", err?.data || err);
 					setSelf(null);
 				});

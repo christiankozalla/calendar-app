@@ -14,7 +14,7 @@ export default function TabLayout() {
 	}
 
 	const currentPage = segments.at(-1);
-	const pagesToHide = ["[eventId]"];
+	const pagesToHide = ["[eventId]", "[noteId]"];
 
 	return (
 		<Tabs
@@ -29,7 +29,7 @@ export default function TabLayout() {
 						? "flex"
 						: pagesToHide.includes(currentPage)
 							? "none"
-							: "flex", // hides tabBar on (tabs)/calendars/[calendarId]/comments/[eventId]
+							: "flex", // hides tabBar on (tabs)/calendars/[calendarId]/comments/[eventId] and ..[noteId]
 				},
 			}}
 		>
@@ -70,6 +70,7 @@ export default function TabLayout() {
 				}}
 			/>
 			<Tabs.Screen name="comments/[eventId]" options={{ href: null }} />
+			<Tabs.Screen name="shared-notes/[noteId]" options={{ href: null }} />
 		</Tabs>
 	);
 }

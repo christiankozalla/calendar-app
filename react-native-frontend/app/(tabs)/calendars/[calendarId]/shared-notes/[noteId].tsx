@@ -3,7 +3,6 @@ import { pb } from "@/api/pocketbase";
 import {
 	Collections,
 	SharedNotesResponse,
-	type EventsResponse,
 	type PersonsResponse,
 } from "@/api/pocketbase-types";
 import { Link, useGlobalSearchParams } from "expo-router";
@@ -16,7 +15,7 @@ import {
 	Platform,
 } from "react-native";
 import { StatusBar } from "expo-status-bar";
-import { useEffect, useState, useRef, Fragment } from "react";
+import { useEffect, useState } from "react";
 import { Header } from "@/components/Header";
 import { TabBarIcon } from "@/components/navigation/TabBarIcon";
 import { Avatar } from "@/components/Avatar";
@@ -42,18 +41,19 @@ export default function SharedNote() {
 	const [inputText, setInputText] = useState("");
 
 	useEffect(() => {
-		fetchNote(noteId as string)
-			.then((note) => {
-				setNote(note);
-				console.log("note", note);
-				return fetchUserPersons(...note.users);
-			})
-			.then((userPersons) => {
-				setUserPersons(userPersons?.items);
-			})
-			.catch((err) => {
-				console.error(err);
-			});
+		if (noteId) {
+			fetchNote(noteId as string)
+				.then((note) => {
+					setNote(note);
+					return fetchUserPersons(...note.users);
+				})
+				.then((userPersons) => {
+					setUserPersons(userPersons?.items);
+				})
+				.catch((err) => {
+					console.error(err);
+				});
+		}
 	}, [noteId]);
 
 	return (
@@ -73,7 +73,9 @@ export default function SharedNote() {
 					behavior="padding"
 					style={styles.container}
 					keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
-				></KeyboardAvoidingView>
+				>
+					{/*  */}
+				</KeyboardAvoidingView>
 			</View>
 		</SafeAreaView>
 	);

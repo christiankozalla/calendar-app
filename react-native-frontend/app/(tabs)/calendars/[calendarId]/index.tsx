@@ -215,6 +215,7 @@ export default function CalendarScreen() {
 			}
 		: markedDates;
 
+	// replace with data from UserPersonState
 	const avatarUri = pb.authStore.record
 		? pb.files.getURL(pb.authStore.record, pb.authStore.record.avatar, {
 				thumb: "100x100",

@@ -70,7 +70,7 @@ export default function CommentsScreen() {
 		<SafeAreaView style={globalstyles.safeArea}>
 			<StatusBar style="dark" />
 
-			<View style={styles.container}>
+			<View style={globalstyles.container}>
 				<Header style={styles.header}>
 					<Text style={styles.headerText}>Comments</Text>
 				</Header>
@@ -113,10 +113,6 @@ export default function CommentsScreen() {
 }
 
 const styles = StyleSheet.create({
-	container: {
-		flex: 1,
-		backgroundColor: "#fff",
-	},
 	flex: {
 		flex: 1,
 	},

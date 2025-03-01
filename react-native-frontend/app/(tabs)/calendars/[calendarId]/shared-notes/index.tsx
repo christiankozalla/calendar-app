@@ -95,44 +95,42 @@ export default function SharedNotes() {
 					<Button label="Create Note" onPress={handleCreateNote} size="small" />
 				</Header>
 
-			<FlatList
-				data={sharedNotes}
-				keyExtractor={(item) => item.id}
-				renderItem={({ item }) => (
-					<TouchableOpacity
-						style={styles.listItem}
-						onPress={() => {
-							router.push(
-								`/(tabs)/calendars/${calendarId}/shared-notes/${item.id}`,
-							);
-						}}
-					>
-						<Text
-							style={styles.noteTitle}
-							ellipsizeMode="tail"
-							numberOfLines={1}
+				<FlatList
+					data={sharedNotes}
+					keyExtractor={(item) => item.id}
+					renderItem={({ item }) => (
+						<TouchableOpacity
+							style={styles.listItem}
+							onPress={() => {
+								router.push(
+									`/(tabs)/calendars/${calendarId}/shared-notes/${item.id}`,
+								);
+							}}
 						>
-							{item.title ||
-								"Untitled Note"}
-						</Text>
-						<View style={styles.noteFooter}>
-							<Text style={styles.noteOwner}>By {item.owner}</Text>
-							<View style={styles.avatarsContainer}>
-								<Avatar size="small" />
-								<Avatar size="small" />
-								<Avatar size="small" />
+							<Text
+								style={styles.noteTitle}
+								ellipsizeMode="tail"
+								numberOfLines={1}
+							>
+								{item.title || "Untitled Note"}
+							</Text>
+							<View style={styles.noteFooter}>
+								<Text style={styles.noteOwner}>By {item.owner}</Text>
+								<View style={styles.avatarsContainer}>
+									<Avatar size="small" />
+									<Avatar size="small" />
+									<Avatar size="small" />
+								</View>
 							</View>
+						</TouchableOpacity>
+					)}
+					ListEmptyComponent={
+						<View style={styles.emptyContainer}>
+							<Text style={styles.emptyText}>No shared notes yet.</Text>
 						</View>
-					</TouchableOpacity>
-				)}
-				ListEmptyComponent={
-					<View style={styles.emptyContainer}>
-						<Text style={styles.emptyText}>No shared notes yet.</Text>
-					</View>
-				}
-			/>
+					}
+				/>
 			</View>
-
 		</SafeAreaView>
 	);
 }
@@ -175,7 +173,7 @@ const styles = StyleSheet.create({
 		flex: 1,
 		justifyContent: "center",
 		alignItems: "center",
-		marginTop: 8
+		marginTop: 8,
 	},
 	emptyText: {
 		fontSize: 16,

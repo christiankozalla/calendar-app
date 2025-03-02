@@ -19,6 +19,7 @@ import { useEffect, useState } from "react";
 import { Header } from "@/components/Header";
 import { TabBarIcon } from "@/components/navigation/TabBarIcon";
 import { Avatar } from "@/components/Avatar";
+import { RichTextEditor } from "@/components/RichTextEditor";
 
 const fetchNote = async (noteId: string) => {
 	return pb.collection(Collections.SharedNotes).getOne(noteId);
@@ -37,6 +38,7 @@ const fetchUserPersons = async (...userIds: string[]) => {
 export default function SharedNote() {
 	const { calendarId, noteId } = useGlobalSearchParams();
 	const [note, setNote] = useState<SharedNotesResponse>();
+	const [text, setText] = useState<string>();
 	const [userPersons, setUserPersons] = useState<PersonsResponse[]>();
 	const [inputText, setInputText] = useState("");
 
@@ -45,6 +47,7 @@ export default function SharedNote() {
 			fetchNote(noteId as string)
 				.then((note) => {
 					setNote(note);
+					setText(note.text);
 					return fetchUserPersons(...note.users);
 				})
 				.then((userPersons) => {
@@ -74,7 +77,8 @@ export default function SharedNote() {
 					style={styles.container}
 					keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
 				>
-					{/*  */}
+					{/* Add a TextInput */}
+					<RichTextEditor text={text} onChangeText={setText} />
 				</KeyboardAvoidingView>
 			</View>
 		</SafeAreaView>
